@@ -1,0 +1,41 @@
+import {
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom"
+import { authApi } from "./api/auth/AuthAPIService";
+import RegisterPage from "./pages/auth/registracijaStraica";
+import NotFoundStranica from "./pages/notFound/notFound";
+import LoginPage from "./pages/auth/LoginPage";
+import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
+import { userAPI } from "./api/user/UserAPIService";
+import UserDashboard from "./pages/user/userDashboard";
+import AdminDashboard from "./pages/user/adminDashboard";
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage authApi={authApi} />} />
+      <Route path="/register" element={<RegisterPage authAPI={authApi}/>} />
+      <Route path="/404" element={<NotFoundStranica />} />
+
+      <Route path="/user-dashboard" element ={
+        <ProtectedRoute requiredRole="user">
+          <UserDashboard />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin-dashboard"
+        element = {
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboard userAPI={userAPI} />
+          </ProtectedRoute>
+        } />
+
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
+    </Routes>
+  );
+}
+
+export default App;
