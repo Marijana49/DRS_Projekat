@@ -15,3 +15,6 @@ class User(db.Model):
     street_number = db.Column(db.String(10), nullable = False)
     gender = db.Column(db.Integer, nullable = False, default = Gender.MALE)
     role = db.Column(db.Integer, nullable = False, default = UserRole.PLAYER)
+    failed_attempts = db.Column(db.Integer, default=0)
+    blocked_until = db.Column(db.DateTime, nullable=True)
+    profile_image = db.Column(db.String(255), nullable=True)
