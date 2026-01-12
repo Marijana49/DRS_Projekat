@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+bcrypt = "==4.0.1"
+flask-sqlalchemy = "*"
+flask = "*"
+flask-jwt-extended = "*"
+mysql-connector-python = "*"
+
+[dev-packages]
+pytest = "*"
+
+[requires]
+python_version = "3.14"

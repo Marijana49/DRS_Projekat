@@ -1,5 +1,6 @@
 from Database.InitializationDB import db
-from enums import UserRole, Gender
+from Domain.enums import UserRole, Gender
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -13,8 +14,8 @@ class User(db.Model):
     country = db.Column(db.String(30), nullable = False)
     street = db.Column(db.String(30), nullable = False)
     street_number = db.Column(db.String(10), nullable = False)
-    gender = db.Column(db.Integer, nullable = False, default = Gender.MALE)
-    role = db.Column(db.Integer, nullable = False, default = UserRole.PLAYER)
+    gender = db.Column(db.Integer, nullable = False, default = Gender.Gender.MALE)
+    role = db.Column(db.Integer, nullable = False, default = UserRole.UserRole.PLAYER)
     failed_attempts = db.Column(db.Integer, default=0)
     blocked_until = db.Column(db.DateTime, nullable=True)
     profile_image = db.Column(db.String(255), nullable=True)
