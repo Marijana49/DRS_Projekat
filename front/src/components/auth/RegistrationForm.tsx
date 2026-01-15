@@ -14,21 +14,29 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
     const [country, setCountry] = useState("");
     const [street, setStreet] = useState("");
     const [streetNumber, setStNumber] = useState("");
-    const [role, setRole] = useState("PLAYER");
     const [error, setError] = useState("");
     const { login } = useAuth();
 
     const submitForm = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        
+        if (!birthDate) {
+        setError("Birth date is required");
+        return;
+    }
+
+    const parsedStreetNumber = Number.parseInt(streetNumber, 10);
+    if (Number.isNaN(parsedStreetNumber)) {
+        setError("Street number must be a number");
+        return;
+    }
+
         const validate = validateAuthData(email, password);
         if(!validate.success){
             setError(validate.message ?? "Wrong data");
             return;
         }
-        setRole("PLAYER");
-        const answer = await authAPI.register(firstName, lastName, email, password, new Date(birthDate), gender, country, street, Number.parseInt(streetNumber), role);
+        const answer = await authAPI.register(firstName, lastName, email, password, new Date(birthDate), gender, country, street, parsedStreetNumber, "PLAYER");
 
         if(answer.success && answer.data) {
             login(answer.data);

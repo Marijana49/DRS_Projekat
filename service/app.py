@@ -15,7 +15,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:1234@localhost:3306/users_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:126261@localhost:3306/users_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
@@ -24,6 +24,9 @@ jwt = JWTManager(app)
 
 db.init_app(app)
 
+with app.app_context():
+    db.create_all()
+
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
@@ -31,10 +34,20 @@ def register():
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "Email već postoji"}), 400
     
+    #gender_value = data.get("gender")
+    #try:
+     #   gender_enum = Gender(gender_value)
+    #except ValueError:
+     #   return jsonify({"message": "Pogrešan gender"}), 400
+    
     gender_str = data.get("gender", "")
     if gender_str not in Gender.__members__:
-        return jsonify({"message": "Error"}), 400
+        return jsonify({"message": "Error gender"}), 400
 
+    if not isinstance(data.get("street_number"), int):
+        return jsonify({"message": "Pogrešan broj ulice"}), 400
+
+#gender = Gender[gender_str].value, ili gender=gender_str.value,
     user = User(
         first_name=data["first_name"],
         last_name=data["last_name"],
