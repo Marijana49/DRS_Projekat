@@ -14,7 +14,7 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
     const [country, setCountry] = useState("");
     const [street, setStreet] = useState("");
     const [streetNumber, setStNumber] = useState("");
-    const [role, setRole] = useState("User");
+    const [role, setRole] = useState("PLAYER");
     const [error, setError] = useState("");
     const { login } = useAuth();
 
@@ -27,8 +27,8 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
             setError(validate.message ?? "Wrong data");
             return;
         }
-        setRole("User");
-        const answer = await authAPI.register(firstName, lastName, email,new Date(birthDate), gender, country, street, Number.parseInt(streetNumber), role);
+        setRole("PLAYER");
+        const answer = await authAPI.register(firstName, lastName, email, password, new Date(birthDate), gender, country, street, Number.parseInt(streetNumber), role);
 
         if(answer.success && answer.data) {
             login(answer.data);
@@ -102,8 +102,8 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
                     onChange={(e)=> setGender(e.target.value)}
                     className="inline-block w-full p-4 leading-6 text-lg font-extrabold placeholder-indigo-900 bg-indigo-100/70 shadow border-2 border-indigo-900 rounded">
                         <option value="Other">Other</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
                     </select>
                 </div>
                 <div className="mb-6">
@@ -127,7 +127,7 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
                         />
                 </div>
                 <div className="mb-6">
-                    <label className="block mb-2 font-extrabold">House Number</label>
+                    <label className="block mb-2 font-extrabold">Street Number</label>
                     <input
                         type="text"
                         placeholder="Number"

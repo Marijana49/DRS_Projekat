@@ -1,18 +1,19 @@
 import os
 from flask import Flask, jsonify, request
 from Database.InitializationDB import db
-from Domain.models import User
+from Domain.models.User import User
 from flask_jwt_extended import (
     JWTManager, create_access_token,
     jwt_required, get_jwt_identity
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from Domain.enums import UserRole
-
-
+from Domain.enums.UserRole import UserRole
+from Domain.enums.Gender import Gender
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:1234@localhost:3306/users_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -29,18 +30,22 @@ def register():
 
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "Email već postoji"}), 400
+    
+    gender_str = data.get("gender", "")
+    if gender_str not in Gender.__members__:
+        return jsonify({"message": "Error"}), 400
 
     user = User(
         first_name=data["first_name"],
         last_name=data["last_name"],
         email=data["email"],
         password=generate_password_hash(data["password"]),
-        birth_date=data["birth_date"],
+        birth_date=datetime.strptime(data["birth_date"], "%Y-%m-%d").date(),
+        gender = Gender[gender_str].value,
         country=data["country"],
         street=data["street"],
         street_number=data["street_number"],
-        gender=data["gender"],
-        role=UserRole.PLAYER
+        role=UserRole.PLAYER.value
     )
 
     db.session.add(user)
@@ -131,7 +136,7 @@ def upload_profile_image():
 def get_users():
     admin = User.query.get(get_jwt_identity())
 
-    if admin.role != UserRole.ADMIN:
+    if admin.role != UserRole.ADMINISTRATOR:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     users = User.query.all()
@@ -148,7 +153,7 @@ def get_users():
 def change_role(user_id):
     admin = User.query.get(get_jwt_identity())
 
-    if admin.role != UserRole.ADMIN:
+    if admin.role != UserRole.ADMINISTRATOR:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     user = User.query.get(user_id)
@@ -164,7 +169,7 @@ def change_role(user_id):
 def delete_user(user_id):
     admin = User.query.get(get_jwt_identity())
 
-    if admin.role != UserRole.ADMIN:
+    if admin.role != UserRole.ADMINISTRATOR:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     user = User.query.get(user_id)

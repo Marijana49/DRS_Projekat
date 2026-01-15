@@ -20,14 +20,14 @@ function App() {
       <Route path="/404" element={<NotFoundStranica />} />
 
       <Route path="/user-dashboard" element ={
-        <ProtectedRoute requiredRole="user">
+        <ProtectedRoute requiredRole="PLAYER">
           <UserDashboard />
         </ProtectedRoute>
       } />
 
       <Route path="/admin-dashboard"
         element = {
-          <ProtectedRoute requiredRole="admin">
+          <ProtectedRoute requiredRole="ADMINISTRATOR">
             <AdminDashboard userAPI={userAPI} />
           </ProtectedRoute>
         } />

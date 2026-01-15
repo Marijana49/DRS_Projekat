@@ -2,15 +2,17 @@ import type { IAuthAPIService } from "./IAuthAPIService";
 import axios from "axios";
 import type { AuthResponse } from "../../types/Auth/AuthResponse";
 
-const API_URL: string = import.meta.env.VITE_API_URL + "auth";
+const API_URL: string = import.meta.env.VITE_API_URL;
+
+console.log("API_URL:", API_URL);
 
 export const authApi: IAuthAPIService = {
     async login(
-        mail: string, 
+        email: string, 
         password: string
     ): Promise<AuthResponse> {
         try {
-            const answer = await axios.post<AuthResponse>(`${API_URL}/login`, {mail, password});
+            const answer = await axios.post<AuthResponse>(`${API_URL}/login`, {email, password});
             return answer.data;
         }catch (error) {
             let message = "Greska prilikom prijave";
@@ -29,7 +31,8 @@ export const authApi: IAuthAPIService = {
      async register(
         firstName: string,
         lastName: string, 
-        email: string, 
+        email: string,
+        password: string, 
         birthDate: Date, 
         gender: string, 
         country: string, 
@@ -39,14 +42,15 @@ export const authApi: IAuthAPIService = {
     ): Promise<AuthResponse> {
         try {
             const answer = await axios.post<AuthResponse>(`${API_URL}/register`, {
-                email, 
-                firstName, 
-                lastName, 
-                birthDate, 
+                first_name: firstName, 
+                last_name: lastName,
+                email,
+                password,  
+                birth_date: birthDate.toISOString().split("T")[0], 
                 gender, 
                 country, 
                 street, 
-                streetNumber,
+                street_number: streetNumber,
                 role
             });
             return answer.data;
