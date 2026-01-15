@@ -11,14 +11,16 @@ from datetime import datetime, timedelta
 from Domain.enums.UserRole import UserRole
 from Domain.enums.Gender import Gender
 from flask_cors import CORS
+import jwt
 
 app = Flask(__name__)
 CORS(app)  
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:126261@localhost:3306/users_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:1234@localhost:3306/users_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
+app.config["JWT_TOKEN_LOCATION"] = "headers"
 jwt = JWTManager(app)
 
 
@@ -91,7 +93,10 @@ def login():
     user.blocked_until = None
     db.session.commit()
 
-    token = create_access_token(identity=user.id)
+    print(user.id)
+    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.gender, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
+    token = create_access_token(identity=user.id, additional_claims= additonal_claims)
+    print(token)
     return jsonify(access_token=token)
 
 @app.route("/logout", methods=["POST"])

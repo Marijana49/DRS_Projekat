@@ -22,7 +22,6 @@ export function UserTable({userApi}: UserTableProps){
     const handleChangeRole = (id: number) => {
         userApi.changeUserRole(token ?? "", id);
     };
-
     useEffect(()=> {
         (async ()=> {
             const data = await userApi.getAllUsers(token ?? "");

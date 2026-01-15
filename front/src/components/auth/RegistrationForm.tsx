@@ -23,13 +23,13 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
         if (!birthDate) {
         setError("Birth date is required");
         return;
-    }
+        }
 
-    const parsedStreetNumber = Number.parseInt(streetNumber, 10);
-    if (Number.isNaN(parsedStreetNumber)) {
+        const parsedStreetNumber = Number.parseInt(streetNumber, 10);
+        if (Number.isNaN(parsedStreetNumber)) {
         setError("Street number must be a number");
         return;
-    }
+        }
 
         const validate = validateAuthData(email, password);
         if(!validate.success){

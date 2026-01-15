@@ -20,6 +20,7 @@ export default function UserDashboard() {
     return(
         <main className="flex item-center justify-center">
             <UserInfo />
+            
         </main>
     );
 }

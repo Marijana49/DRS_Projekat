@@ -11,7 +11,7 @@ import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
 import { userAPI } from "./api/user/UserAPIService";
 import UserDashboard from "./pages/user/userDashboard";
 import AdminDashboard from "./pages/user/adminDashboard";
-
+import ChangeUserDashboard from "./pages/user/changeUserDashboard";
 function App() {
   return (
     <Routes>
@@ -19,13 +19,14 @@ function App() {
       <Route path="/register" element={<RegisterPage authAPI={authApi}/>} />
       <Route path="/404" element={<NotFoundStranica />} />
 
-      <Route path="/user-dashboard" element ={
-        <ProtectedRoute requiredRole="PLAYER">
+      <Route path="/profile" element ={
           <UserDashboard />
-        </ProtectedRoute>
       } />
+      <Route path="/profil/edit" element={
+        <ChangeUserDashboard />
+      }/>
 
-      <Route path="/admin-dashboard"
+      <Route path="/admin"
         element = {
           <ProtectedRoute requiredRole="ADMINISTRATOR">
             <AdminDashboard userAPI={userAPI} />

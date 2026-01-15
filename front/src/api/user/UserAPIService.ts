@@ -2,12 +2,13 @@ import type { IUserAPIService } from "./IUserAPIService";
 import type { UserDTO } from "../../models/users/UserDTO";
 import type { UserResponse } from "../../types/User/UserResponse";
 import axios from "axios";
-const API_URL: string = import.meta.env.VITE_API_URL + "user";
+const API_URL: string = import.meta.env.VITE_API_URL;
 
+console.log(API_URL);
 export const userAPI: IUserAPIService = {
     async getAllUsers(token: string): Promise<UserDTO[]> {
         try {
-            const answer = await axios.get<UserDTO[]>(`${API_URL}s`,{
+            const answer = await axios.get<UserDTO[]>(`${API_URL}/admin/users`,{
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -20,7 +21,7 @@ export const userAPI: IUserAPIService = {
 
     async deleteUser(token: string, id: number): Promise<UserResponse> {
         try {
-            const answer = await axios.delete<UserResponse>(`${API_URL}s/${id}`, {
+            const answer = await axios.delete<UserResponse>(`${API_URL}/admin/role/${id}`, {
                 headers: {
                     Authorization: `Bearers ${token}`,
                 },
@@ -37,7 +38,7 @@ export const userAPI: IUserAPIService = {
 
     async changeUserRole(token: string, id:number): Promise<UserResponse>{
         try {
-            const answer = await axios.post<UserResponse>(`${API_URL}s/${id}`, {
+            const answer = await axios.put<UserResponse>(`${API_URL}/admin/user/${id}`, {
                 headers: {
                     Authorization: `Bearers ${token}`,
                 },
@@ -50,5 +51,27 @@ export const userAPI: IUserAPIService = {
                 data: undefined
             }
         }
-    }
+    },
+
+    async changeUserInformation(token: string, 
+        firstName: string,
+        lastName: string,
+        country: string, 
+        street: string, 
+        streetNumber: number,) : Promise<UserResponse> {
+        try{
+            const answer = await axios.put<UserResponse>(`${API_URL}/profil`, {
+                headers: {
+                    Authorization: `Bearers ${token}`,
+                }, first_name: firstName, last_name: lastName, country: country, street: street, street_number: streetNumber
+            });
+            return answer.data;
+        }catch{
+            return{
+                success: false,
+                message: "Error",
+                data: undefined
+            }
+        }
+    },
 };

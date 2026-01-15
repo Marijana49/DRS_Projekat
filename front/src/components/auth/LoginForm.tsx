@@ -3,6 +3,7 @@ import type { AuthFormProps } from "../../types/props/auth_form_props/AuthFormPr
 import { useAuth } from "../../hooks/useAuthHook";
 import { Link } from "react-router-dom";
 import { validateAuthData } from "../../api/validators/auth/AuthValidator";
+import { parseToken } from "../../helpers/parseToken";
 
 
 export function LoginForm({ authAPI }: AuthFormProps){
@@ -21,10 +22,12 @@ export function LoginForm({ authAPI }: AuthFormProps){
         }
 
         const answer = await authAPI.login(email, password);
-        if(answer.success && answer.data) {
-            login(answer.data);
-        }else {
-            setError(answer.message);
+        const token = parseToken(answer);
+        if(!!token){
+            login(token);
+        }
+        else {
+            setError("Invalid Token");
             setEmail("");
             setPassword("");
         }

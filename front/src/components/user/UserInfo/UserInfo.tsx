@@ -2,19 +2,30 @@ import { jwtDecode } from "jwt-decode";
 import { ObrisiPoKljucu, ProcitajPoKljucu } from "../../../helpers/local_storage";
 import { useAuth } from "../../../hooks/useAuthHook";
 import type { JwtTokenClaims } from "../../../types/Auth/JwtTokenClaims";
+import { parseGender } from "../../../helpers/parseGender";
+import { parseRole } from "../../../helpers/parseRole";
+import { useNavigate } from "react-router-dom";
 
 export function UserInfo(){
     const token = ProcitajPoKljucu("authToken");
     const { logout } = useAuth();
-
+    const navigate = useNavigate();
 
     if(!token) return null;
 
-    const {id, firstName, lastName, email, birthDate, gender, country, street, streetNumber, role} = jwtDecode<JwtTokenClaims>(token);
+    const {sub, firstName, lastName, email, birthDate, gender, country, street, streetNumber, role} = jwtDecode<JwtTokenClaims>(token);
 
     const handleLogout = () => {
         ObrisiPoKljucu("authToken");
         logout();
+    }
+
+    const handelSwitchPage = () => {
+        navigate("/admin");
+    }
+
+    const handleEdit = () => {
+        navigate("/profil/edit")
     }
 
     return(        
@@ -25,19 +36,27 @@ export function UserInfo(){
                     Dobro Dosli {firstName}
                 </h1>
                 <div className="space-y-3 text-lg text-indigo-300">
-                    <p><strong>ID:</strong> {id}</p>
-                    <p><strong>Name</strong> {firstName}</p>
-                    <p><strong>Last Name</strong> {lastName}</p>
-                    <p><strong>Email</strong> {email}</p>
-                    <p><strong>Gender</strong> {gender}</p>
-                    <p><strong>Country</strong> {country}</p>
-                    <p><strong>Birtday</strong> {birthDate.toDateString()}</p>
-                    <p><strong>Street</strong> {street}</p>
-                    <p><strong></strong> {streetNumber}</p>
-                    <p><strong>Role</strong> {role}</p>
+                    <p><strong>ID:</strong> {sub}</p>
+                    <p><strong>Name:</strong> {firstName}</p>
+                    <p><strong>Last Name:</strong> {lastName}</p>
+                    <p><strong>Email:</strong> {email}</p>
+                    <p><strong>Gender:</strong> {parseGender(gender)}</p>
+                    <p><strong>Country:</strong> {country}</p>
+                    <p><strong>Birtday:</strong> {birthDate}</p>
+                    <p><strong>Street:</strong> {street}</p>
+                    <p><strong>House Number:</strong> {streetNumber}</p>
+                    <p><strong>Role:</strong> {parseRole(role)}</p>
                 </div>
                 <div className="flex flec-wrap -mx-4 mb-6 item-center justify-between">
                     <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleLogout}> Logout </button>
+                    <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleEdit}> Edit </button>
+                    {parseRole(role) == "ADMINISTRATOR" ? (
+                        <button onClick={handelSwitchPage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" >User List</button>
+                    ) : (
+                        <div></div>
+                    )
+
+                    }
                 </div>
             </div>
        </div>

@@ -14,7 +14,7 @@ export default function LoginPage({ authApi }: LoginPageProps){
 
     useEffect(()=> {
         if(isAuthenticated && user)
-            navigate(`/${user.role}-dashboard`);
+            navigate(`/profile`);
     }, [isAuthenticated, navigate, user]);
 
     return (

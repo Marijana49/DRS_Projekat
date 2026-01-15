@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthHook";
 import { ObrisiPoKljucu } from "../../helpers/local_storage";
+import { parseRole } from "../../helpers/parseRole";
 
 type ProtectedRouteProps = {
     children: React.ReactNode;
@@ -28,15 +29,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if(!isAuthenticated) {
         return <Navigate to={redirectTo} state={{from: location}} replace />;
     }
-
-    if(requiredRole && user?.role !== requiredRole) {
+    
+    const parsedRole = parseRole(user?.role);
+    if(requiredRole && parsedRole !== requiredRole) {
         return (
             <main>
                 <div>
                     <h2>Nemate Dozvolu</h2>
                     <p>
                         Potrebna je uloga {" "}
-                        <span>{requiredRole}</span> za pristup ovoj stranici
+                        <span>{requiredRole}</span> za pristup ovoj stranici vasa uloga je {parsedRole}
                     </p>
                     <button onClick={handleLogout}>
                         Odjava iz aplikacije

@@ -4,16 +4,16 @@ import type { AuthContextType } from "../../types/Auth/AuthContext";
 import type { AuthUser } from "../../types/Auth/AuthUser";
 import { ObrisiPoKljucu, ProcitajPoKljucu, SacuvajPoKljucu } from "../../helpers/local_storage";
 import type { JwtTokenClaims }from '../../types/Auth/JwtTokenClaims'
-    
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const decodeJWT = (token: string): JwtTokenClaims | null => {
     try {
         const decoded = jwtDecode<JwtTokenClaims>(token);
 
-        if(decoded.id && decoded.email && decoded.role){
+        if(decoded.sub && decoded.email && decoded.role){
             return{
-                id: decoded.id,
+                sub: decoded.sub,
                 firstName: decoded.firstName,
                 lastName: decoded.lastName,
                 email: decoded.email,
@@ -62,8 +62,8 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({children}) => {
             if (claims){
                 setToken(savedToken);
                 setUser({
-                    id: claims.id,
-                    mail: claims.email,
+                    id: claims.sub,
+                    email: claims.email,
                     role: claims.role
                 });
             }else{
@@ -79,8 +79,8 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({children}) => {
         if(claims && !isTokenExpired(newToken)){
             setToken(newToken);
             setUser({
-                id: claims.id,
-                mail: claims.email,
+                id: claims.sub,
+                email: claims.email,
                 role: claims.role
             });
             SacuvajPoKljucu("authToken", newToken);
@@ -90,6 +90,7 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({children}) => {
     };
 
     const logout = () => {
+        // const answer = axios.post(`${API_URL}/logout`, {token});
         setToken(null);
         setUser(null);
         ObrisiPoKljucu("authToken");

@@ -1,9 +1,9 @@
 export type JwtTokenClaims = {
-    id: number;
+    sub: number;
     firstName: string; 
     lastName: string; 
     email: string;
-    birthDate: Date; 
+    birthDate: string; 
     gender:string;
     country: string; 
     street: string;
