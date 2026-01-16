@@ -9,6 +9,7 @@ flask-sqlalchemy = "*"
 flask = "*"
 flask-jwt-extended = "*"
 mysql-connector-python = "*"
+datetime = "*"
 
 [dev-packages]
 pytest = "*"

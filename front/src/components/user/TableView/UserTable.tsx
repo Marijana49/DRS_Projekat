@@ -3,6 +3,7 @@ import type{ UserDTO } from "../../../models/users/UserDTO";
 import { useAuth } from "../../../hooks/useAuthHook";
 import { ObrisiPoKljucu } from "../../../helpers/local_storage";
 import type { IUserAPIService } from "../../../api/user/IUserAPIService";
+import { parseRole } from "../../../helpers/parseRole";
 
 interface UserTableProps {
  userApi: IUserAPIService
@@ -66,7 +67,7 @@ export function UserTable({userApi}: UserTableProps){
                             <td className="px-4 py-2">{user.id}</td>
                             <td className="px-4 py-2">{user.lastName}</td>
                             <td className="px-4 py-2">{user.email}</td>
-                            <td className="px-4 py-2">{user.role}</td>
+                            <td className="px-4 py-2">{parseRole(user.role)}</td>
                             <td className="px-4 py-2">
                                 <button onClick={() => handleChangeRole(user.id)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500">
                                     Change Role
