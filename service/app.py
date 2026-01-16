@@ -1,7 +1,8 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from Database.InitializationDB import db
 from Domain.models.User import User
+from Domain.models.Email import Email
 from flask_jwt_extended import (
     JWTManager, create_access_token,
     jwt_required, get_jwt_identity
@@ -23,7 +24,6 @@ app.config["JWT_SECRET_KEY"] = "tajna"
 # app.config["JWT_TOKEN_LOCATION"] = "headers"
 jwt = JWTManager(app)
 
-
 db.init_app(app)
 
 with app.app_context():
@@ -36,12 +36,6 @@ def register():
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "Email već postoji"}), 400
     
-    #gender_value = data.get("gender")
-    #try:
-     #   gender_enum = Gender(gender_value)
-    #except ValueError:
-     #   return jsonify({"message": "Pogrešan gender"}), 400
-    
     gender_str = data.get("gender", "")
     if gender_str not in Gender.__members__:
         return jsonify({"message": "Error gender"}), 400
@@ -49,7 +43,6 @@ def register():
     if not isinstance(data.get("street_number"), int):
         return jsonify({"message": "Pogrešan broj ulice"}), 400
 
-#gender = Gender[gender_str].value, ili gender=gender_str.value,
     user = User(
         first_name=data["first_name"],
         last_name=data["last_name"],
@@ -93,10 +86,9 @@ def login():
     user.blocked_until = None
     db.session.commit()
 
-    print(user.id)
-    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.country, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
+
+    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.country, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role, 'picture': user.profile_image}
     token = create_access_token(identity=str(user.id), additional_claims= additonal_claims)
-    print(token)
     return jsonify(access_token=token)
 
 @app.route("/logout", methods=["POST"])
@@ -118,7 +110,6 @@ def profile():
         })
 
     data = request.json
-    print(data)
     user.first_name = data.get("first_name", user.first_name)
     user.last_name = data.get("last_name", user.last_name)
     user.country = data.get("country", user.country)
@@ -149,6 +140,11 @@ def upload_profile_image():
 
     return jsonify({"message": "Slika uspešno dodata"})
 
+@app.route("/uploads/<path:filename>", methods=["GET"])
+def get_profile_image(filename):
+    path = "uploads/" + filename
+    response = send_file(path_or_file=path)
+    return response
 
 @app.route("/admin/users", methods=["GET"])
 @jwt_required()
@@ -157,7 +153,7 @@ def get_users():
     admin_id = int(get_jwt_identity())
     admin = User.query.get(admin_id)
 
-    if admin.role != UserRole.ADMINISTRATOR:
+    if admin.role != UserRole.ADMINISTRATOR.value:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     users = User.query.all()
@@ -182,10 +178,13 @@ def change_role(user_id):
     admin_id = int(get_jwt_identity())
     admin = User.query.get(admin_id)
 
-    if admin.role != UserRole.ADMINISTRATOR:
+    if admin.role != UserRole.ADMINISTRATOR.value:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "Korisnik ne postoji"}), 404
+    
     data = request.get_json()
     role_str = data["role"].upper()
     try:
@@ -195,16 +194,35 @@ def change_role(user_id):
 
     db.session.commit()
 
-    print("MAIL: Uloga promijenjena u {user.role}")
+    print(f"MAIL: Uloga promijenjena u {user.role}")
+
+    subject = "Promjena uloge"
+    body = f"""Zdravo {user.first_name},
+
+        Vaša uloga je promijenjena u MODERATOR.
+
+        Pozdrav,
+        Admin tim"""
+
+        # snimi u bazu
+    email = Email(
+        to=user.email,
+        subject=subject,
+        body=body
+        )
+    db.session.add(email)
+    db.session.commit()
 
     return jsonify({"message": "Uloga promijenjena"})
+
+
 
 @app.route("/admin/user/<int:user_id>", methods=["DELETE"])
 @jwt_required()
 def delete_user(user_id):
     admin = User.query.get(get_jwt_identity())
 
-    if admin.role != UserRole.ADMINISTRATOR:
+    if admin.role != UserRole.ADMINISTRATOR.value:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     user = User.query.get(user_id)
