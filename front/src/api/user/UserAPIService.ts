@@ -23,7 +23,7 @@ export const userAPI: IUserAPIService = {
         try {
             const answer = await axios.delete<UserResponse>(`${API_URL}/admin/role/${id}`, {
                 headers: {
-                    Authorization: `Bearers ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
             return answer.data;
@@ -40,7 +40,7 @@ export const userAPI: IUserAPIService = {
         try {
             const answer = await axios.put<UserResponse>(`${API_URL}/admin/user/${id}`, {
                 headers: {
-                    Authorization: `Bearers ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
             return answer.data;
@@ -62,7 +62,7 @@ export const userAPI: IUserAPIService = {
         try{
             const answer = await axios.put<UserResponse>(`${API_URL}/profil`, {
                 headers: {
-                    Authorization: `Bearers ${token}`,
+                    Authorization: `Bearer ${token}`,
                 }, first_name: firstName, last_name: lastName, country: country, street: street, street_number: streetNumber
             });
             return answer.data;

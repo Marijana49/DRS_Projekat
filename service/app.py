@@ -14,9 +14,9 @@ from flask_cors import CORS
 import jwt
 
 app = Flask(__name__)
-CORS(app)  
+CORS(app, supports_credentials=True, expose_headers=["Authorization"], allow_headers=["Content-Type", "Authorization"])
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:126261@localhost:3306/users_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:1234@localhost:3306/users_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
@@ -94,8 +94,8 @@ def login():
     db.session.commit()
 
     print(user.id)
-    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.gender, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
-    token = create_access_token(identity=user.id, additional_claims= additonal_claims)
+    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.country, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
+    token = create_access_token(identity=str(user.id), additional_claims= additonal_claims)
     print(token)
     return jsonify(access_token=token)
 
@@ -107,7 +107,7 @@ def logout():
 @app.route("/profile", methods=["GET", "PUT"])
 @jwt_required()
 def profile():
-    user = User.query.get(get_jwt_identity())
+    user = User.query.get(int(get_jwt_identity()))
 
     if request.method == "GET":
         return jsonify({
@@ -130,7 +130,7 @@ def profile():
 @app.route("/profile/image", methods=["POST"])
 @jwt_required()
 def upload_profile_image():
-    user = User.query.get(get_jwt_identity())
+    user = User.query.get(int(get_jwt_identity()))
 
     if "image" not in request.files:
         return jsonify({"message": "Nema fajla"}), 400
@@ -152,7 +152,9 @@ def upload_profile_image():
 @app.route("/admin/users", methods=["GET"])
 @jwt_required()
 def get_users():
-    admin = User.query.get(get_jwt_identity())
+    print("HEADERS:", request.headers) 
+    admin_id = int(get_jwt_identity())
+    admin = User.query.get(admin_id)
 
     if admin.role != UserRole.ADMINISTRATOR:
         return jsonify({"message": "Zabranjen pristup"}), 403
@@ -161,7 +163,14 @@ def get_users():
     return jsonify([
         {
             "id": u.id,
+            "firstName": u.first_name,
+            "lastName": u.last_name,
             "email": u.email,
+            "birthDate": u.birth_date.strftime("%Y-%m-%d"),
+            "gender": u.gender,
+            "country": u.country,
+            "street": u.street,
+            "streetNumber": u.street_number,
             "role": u.role
         } for u in users
     ])
