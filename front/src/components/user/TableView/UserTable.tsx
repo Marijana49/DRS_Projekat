@@ -21,7 +21,7 @@ export function UserTable({userApi}: UserTableProps){
 
 
     const handleDelete = async (id: number) => {
-        const confirmed = window.confirm("Da li ste sigurni da želite obrisati korisnika?");
+        const confirmed = window.confirm("Are you sure you want to delete this user?");
         if (!confirmed) return;
 
         const result = await userApi.deleteUser(token, id);
@@ -31,7 +31,7 @@ export function UserTable({userApi}: UserTableProps){
     };
 
     const handleChangeRole = async (id: number) => {
-        const newRole = prompt("Unesite novu ulogu: PLAYER ili MODERATOR");
+        const newRole = prompt("Enter new role: PLAYER or MODERATOR");
         if (!newRole) return; 
         await userApi.changeUserRole(token, id, newRole.toUpperCase());
 
@@ -84,7 +84,7 @@ export function UserTable({userApi}: UserTableProps){
                     ):(
                         <tr>
                             <td colSpan={4} className="text-center text-gray-700 py-4">
-                                Nema Korisnika
+                                No users
                             </td>
                         </tr>
                     )}

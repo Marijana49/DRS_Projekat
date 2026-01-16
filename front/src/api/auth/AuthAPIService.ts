@@ -15,7 +15,7 @@ export const authApi: IAuthAPIService = {
             const answer = await axios.post<AuthResponse>(`${API_URL}/login`, {email, password});
             return answer.data;
         }catch (error) {
-            let message = "Greska prilikom prijave";
+            let message = "Login error";
 
             if(axios.isAxiosError(error)){
                 message = error.response?.data?.message || message;
@@ -55,7 +55,7 @@ export const authApi: IAuthAPIService = {
             });
             return answer.data;
         }catch(error){
-            let message = "Greska prilikom registracije";
+            let message = "Registration error";
             if(axios.isAxiosError(error)){
                 message = error.response?.data?.message || message;
             }

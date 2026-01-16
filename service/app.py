@@ -34,14 +34,14 @@ def register():
     data = request.json
 
     if User.query.filter_by(email=data["email"]).first():
-        return jsonify({"message": "Email već postoji"}), 400
+        return jsonify({"message": "Email already exists"}), 400
     
     gender_str = data.get("gender", "")
     if gender_str not in Gender.__members__:
         return jsonify({"message": "Error gender"}), 400
 
     if not isinstance(data.get("street_number"), int):
-        return jsonify({"message": "Pogrešan broj ulice"}), 400
+        return jsonify({"message": "Street number has to be a number"}), 400
 
     user = User(
         first_name=data["first_name"],
@@ -59,7 +59,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"message": "Korisnik registrovan"}), 201
+    return jsonify({"message": "User registered"}), 201
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -67,10 +67,10 @@ def login():
     user = User.query.filter_by(email=data["email"]).first()
 
     if not user:
-        return jsonify({"message": "Pogrešni kredencijali"}), 401
+        return jsonify({"message": "Wrong credentials"}), 401
 
     if user.blocked_until and user.blocked_until > datetime.now():
-        return jsonify({"message": "Nalog je privremeno blokiran"}), 403
+        return jsonify({"message": "Your account is temporarily blocked"}), 403
 
     if not check_password_hash(user.password, data["password"]):
         user.failed_attempts += 1
@@ -80,7 +80,7 @@ def login():
             user.failed_attempts = 0
 
         db.session.commit()
-        return jsonify({"message": "Pogrešni kredencijali"}), 401
+        return jsonify({"message": "Wrong credentials"}), 401
 
     user.failed_attempts = 0
     user.blocked_until = None
@@ -94,7 +94,7 @@ def login():
 @app.route("/logout", methods=["POST"])
 @jwt_required()
 def logout():
-    return jsonify({"message": "Odjava uspješna"})
+    return jsonify({"message": "Logout succesfull"})
 
 @app.route("/profile", methods=["GET", "PUT"])
 @jwt_required()
@@ -124,7 +124,7 @@ def profile():
     user.street_number = data.get("street_number", user.street_number)
 
     db.session.commit()
-    return jsonify({"message": "Profil ažuriran"})
+    return jsonify({"message": "Profile updated"})
 
 @app.route("/profile/image", methods=["POST"])
 @jwt_required()
@@ -132,7 +132,7 @@ def upload_profile_image():
     user = User.query.get(int(get_jwt_identity()))
 
     if "image" not in request.files:
-        return jsonify({"message": "Nema fajla"}), 400
+        return jsonify({"message": "No file"}), 400
 
     image = request.files["image"]
 
@@ -145,7 +145,7 @@ def upload_profile_image():
     user.profile_image = path
     db.session.commit()
 
-    return jsonify({"message": "Slika uspešno dodata"})
+    return jsonify({"message": "Picture added succesfully"})
 
 @app.route("/uploads/<path:filename>", methods=["GET"])
 def get_profile_image(filename):
@@ -161,7 +161,7 @@ def get_users():
     admin = User.query.get(admin_id)
 
     if admin.role != UserRole.ADMINISTRATOR.value:
-        return jsonify({"message": "Zabranjen pristup"}), 403
+        return jsonify({"message": "Unauthorised access"}), 403
 
     users = User.query.all()
     return jsonify([
@@ -186,30 +186,32 @@ def change_role(user_id):
     admin = User.query.get(admin_id)
 
     if admin.role != UserRole.ADMINISTRATOR.value:
-        return jsonify({"message": "Zabranjen pristup"}), 403
+        return jsonify({"message": "Unauthorised access"}), 403
 
     user = User.query.get(user_id)
     if not user:
-        return jsonify({"message": "Korisnik ne postoji"}), 404
+        return jsonify({"message": "User doesn't exist"}), 404
     
     data = request.get_json()
     role_str = data["role"].upper()
     try:
         user.role = UserRole[role_str].value  
     except KeyError:
-        return jsonify({"message": "Nevalidna uloga"}), 400
+        return jsonify({"message": "Nonexistant role"}), 400
 
     db.session.commit()
 
-    print(f"MAIL: Uloga promijenjena u {user.role}")
+    print(f"MAIL: Role changed into {user.role}")
 
-    subject = "Promjena uloge"
-    body = f"""Zdravo {user.first_name},
+    role_name = UserRole(user.role).name
 
-        Vaša uloga je promijenjena u MODERATOR.
+    subject = "Role change"
+    body = f"""Hello {user.first_name},
 
-        Pozdrav,
-        Admin tim"""
+        Your role has been changed into {role_name}.
+
+        Warm regards,
+        Admin team"""
 
         # snimi u bazu
     email = Email(
@@ -220,7 +222,7 @@ def change_role(user_id):
     db.session.add(email)
     db.session.commit()
 
-    return jsonify({"message": "Uloga promijenjena"})
+    return jsonify({"message": "Role changed"})
 
 
 
@@ -230,21 +232,21 @@ def delete_user(user_id):
     admin = User.query.get(get_jwt_identity())
 
     if admin.role != UserRole.ADMINISTRATOR.value:
-        return jsonify({"message": "Zabranjen pristup"}), 403
+        return jsonify({"message": "Unauthorised access"}), 403
 
     user = User.query.get(user_id)
     if not user:
-        return jsonify({"message": "Korisnik ne postoji"}), 404
+        return jsonify({"message": "User doesn't exist"}), 404
 
     db.session.delete(user)
     db.session.commit()
 
-    return jsonify({"message": "Korisnik obrisan"})
+    return jsonify({"message": "User deleted"})
 
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        print("Tabele kreirane!")
+        print("Tabels created!")
 
     app.run(debug=True)

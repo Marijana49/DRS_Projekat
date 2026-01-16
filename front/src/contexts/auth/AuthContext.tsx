@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({children}) => {
             });
             SacuvajPoKljucu("authToken", newToken);
         }else{
-            console.error("Nevazeci ili istekao token");
+            console.error("Token expired or inadequate.");
         }
     };
 

@@ -35,13 +35,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return (
             <main>
                 <div>
-                    <h2>Nemate Dozvolu</h2>
+                    <h2>You do not have authorization</h2>
                     <p>
-                        Potrebna je uloga {" "}
-                        <span>{requiredRole}</span> za pristup ovoj stranici vasa uloga je {parsedRole}
+                        You need to be {" "}
+                        <span>{requiredRole}</span> to access this page. Your role is {parsedRole}
                     </p>
                     <button onClick={handleLogout}>
-                        Odjava iz aplikacije
+                        Logout
                     </button>
                 </div>
             </main>

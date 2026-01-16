@@ -51,7 +51,7 @@ export function UserInfo({userAPI} : UserInfoProps){
             <div className="max-w-5xl mx-auto">
 
                 <h1 className="text-3xl font-extrabold text-center text-indigo-900 mb-6">
-                    Dobro Dosli {user.firstName}
+                    Welcome {user.firstName}
                 </h1>
                 <div className="flex item-center justify-left">
                     <img src={user.picture ? `${API_URL}/`+ user.picture : "src/assets/default_icon.jpg"}
@@ -88,7 +88,7 @@ export function UserInfo({userAPI} : UserInfoProps){
 
                     }
                 </div>
-            </div>):( <div>Nema Usera</div> )}
+            </div>):( <div>No users</div> )}
        </div>
     );
 }
