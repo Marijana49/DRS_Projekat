@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify, request
 from Database.InitializationDB import db
 from Domain.models.User import User
+from Domain.models.Email import Email
 from flask_jwt_extended import (
     JWTManager, create_access_token,
     jwt_required, get_jwt_identity
@@ -23,7 +24,6 @@ app.config["JWT_SECRET_KEY"] = "tajna"
 # app.config["JWT_TOKEN_LOCATION"] = "headers"
 jwt = JWTManager(app)
 
-
 db.init_app(app)
 
 with app.app_context():
@@ -36,12 +36,6 @@ def register():
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "Email već postoji"}), 400
     
-    #gender_value = data.get("gender")
-    #try:
-     #   gender_enum = Gender(gender_value)
-    #except ValueError:
-     #   return jsonify({"message": "Pogrešan gender"}), 400
-    
     gender_str = data.get("gender", "")
     if gender_str not in Gender.__members__:
         return jsonify({"message": "Error gender"}), 400
@@ -49,7 +43,6 @@ def register():
     if not isinstance(data.get("street_number"), int):
         return jsonify({"message": "Pogrešan broj ulice"}), 400
 
-#gender = Gender[gender_str].value, ili gender=gender_str.value,
     user = User(
         first_name=data["first_name"],
         last_name=data["last_name"],
@@ -157,7 +150,7 @@ def get_users():
     admin_id = int(get_jwt_identity())
     admin = User.query.get(admin_id)
 
-    if admin.role != UserRole.ADMINISTRATOR:
+    if admin.role != UserRole.ADMINISTRATOR.value:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     users = User.query.all()
@@ -182,10 +175,13 @@ def change_role(user_id):
     admin_id = int(get_jwt_identity())
     admin = User.query.get(admin_id)
 
-    if admin.role != UserRole.ADMINISTRATOR:
+    if admin.role != UserRole.ADMINISTRATOR.value:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "Korisnik ne postoji"}), 404
+    
     data = request.get_json()
     role_str = data["role"].upper()
     try:
@@ -195,16 +191,35 @@ def change_role(user_id):
 
     db.session.commit()
 
-    print("MAIL: Uloga promijenjena u {user.role}")
+    print(f"MAIL: Uloga promijenjena u {user.role}")
+
+    subject = "Promjena uloge"
+    body = f"""Zdravo {user.first_name},
+
+        Vaša uloga je promijenjena u MODERATOR.
+
+        Pozdrav,
+        Admin tim"""
+
+        # snimi u bazu
+    email = Email(
+        to=user.email,
+        subject=subject,
+        body=body
+        )
+    db.session.add(email)
+    db.session.commit()
 
     return jsonify({"message": "Uloga promijenjena"})
+
+
 
 @app.route("/admin/user/<int:user_id>", methods=["DELETE"])
 @jwt_required()
 def delete_user(user_id):
     admin = User.query.get(get_jwt_identity())
 
-    if admin.role != UserRole.ADMINISTRATOR:
+    if admin.role != UserRole.ADMINISTRATOR.value:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     user = User.query.get(user_id)

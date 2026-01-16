@@ -14,7 +14,7 @@ class User(db.Model):
     birth_date = db.Column(db.Date, nullable = False)
     country = db.Column(db.String(30), nullable = False)
     street = db.Column(db.String(30), nullable = False)
-    street_number = db.Column(db.String(10), nullable = False)
+    street_number = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.Integer, nullable = False, default = Gender.Male.value)
     role = db.Column(db.Integer, nullable = False, default = UserRole.PLAYER.value)
     failed_attempts = db.Column(db.Integer, nullable=False, default=0)
