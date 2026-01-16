@@ -17,12 +17,26 @@ export function UserTable({userApi}: UserTableProps){
         ObrisiPoKljucu("authToken");
         logout();
     };
-    const handleDelete = (id: number) => {
-        userApi.deleteUser(token, id);
+
+    const handleDelete = async (id: number) => {
+        const confirmed = window.confirm("Da li ste sigurni da želite obrisati korisnika?");
+        if (!confirmed) return;
+
+        const result = await userApi.deleteUser(token, id);
+
+        setUsers(prevUsers => prevUsers.filter(u => u.id !== id));
+        alert(result.message);
     };
-    const handleChangeRole = (id: number) => {
-        userApi.changeUserRole(token, id);
+
+    const handleChangeRole = async (id: number) => {
+        const newRole = prompt("Unesite novu ulogu: PLAYER ili MODERATOR");
+        if (!newRole) return; 
+        await userApi.changeUserRole(token, id, newRole.toUpperCase());
+
+        const data = await userApi.getAllUsers(token);
+        setUsers(data);
     };
+
     useEffect(()=> {
         (async ()=> {
             const data = await userApi.getAllUsers(token);

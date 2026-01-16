@@ -4,7 +4,7 @@ import type { UserResponse } from "../../types/User/UserResponse";
 export interface IUserAPIService {
     getAllUsers(token: string): Promise<UserDTO[]>;
     deleteUser(token: string, id:number): Promise<UserResponse>;
-    changeUserRole(token: string, id:number): Promise<UserResponse>;
+    changeUserRole(token: string, id:number, newRole: string): Promise<UserResponse>;
     changeUserInformation(token: string, 
         firstName: string,
         lastName: string,

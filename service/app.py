@@ -97,8 +97,6 @@ def login():
     additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.country, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
     token = create_access_token(identity=str(user.id), additional_claims= additonal_claims)
     print(token)
-    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.gender, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
-    token = create_access_token(identity=user.id, additional_claims= additonal_claims)
     return jsonify(access_token=token)
 
 @app.route("/logout", methods=["POST"])
@@ -107,12 +105,10 @@ def logout():
     return jsonify({"message": "Odjava uspješna"})
 
 @app.route("/profile", methods=["GET", "PUT"])
-@jwt_required(locations='headers')
+@jwt_required()
 def profile():
     user = User.query.get(int(get_jwt_identity()))
 
-
-    user = User.query.get(get_jwt_identity())
     if request.method == "GET":
         return jsonify({
             "first_name": user.first_name,
@@ -155,14 +151,12 @@ def upload_profile_image():
 
 
 @app.route("/admin/users", methods=["GET"])
-@jwt_required(locations='headers')
+@jwt_required()
 def get_users():
     print("HEADERS:", request.headers) 
     admin_id = int(get_jwt_identity())
     admin = User.query.get(admin_id)
 
-    token = request.headers.get('Authorization', type=str)
-    admin = User.query.get(get_jwt_identity())
     if admin.role != UserRole.ADMINISTRATOR:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
@@ -174,7 +168,6 @@ def get_users():
             "lastName": u.last_name,
             "email": u.email,
             "birthDate": u.birth_date.strftime("%Y-%m-%d"),
-            "birthDate": u.birth_date,
             "gender": u.gender,
             "country": u.country,
             "street": u.street,
@@ -186,16 +179,23 @@ def get_users():
 @app.route("/admin/role/<int:user_id>", methods=["PUT"])
 @jwt_required()
 def change_role(user_id):
-    admin = User.query.get(get_jwt_identity())
+    admin_id = int(get_jwt_identity())
+    admin = User.query.get(admin_id)
 
     if admin.role != UserRole.ADMINISTRATOR:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
     user = User.query.get(user_id)
-    user.role = request.json["role"]
+    data = request.get_json()
+    role_str = data["role"].upper()
+    try:
+        user.role = UserRole[role_str].value  
+    except KeyError:
+        return jsonify({"message": "Nevalidna uloga"}), 400
+
     db.session.commit()
 
-    print(f"MAIL: Uloga promijenjena u {user.role}")
+    print("MAIL: Uloga promijenjena u {user.role}")
 
     return jsonify({"message": "Uloga promijenjena"})
 
