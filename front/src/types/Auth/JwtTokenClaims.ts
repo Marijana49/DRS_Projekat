@@ -9,4 +9,5 @@ export type JwtTokenClaims = {
     street: string;
     streetNumber: number;
     role: string;
+    picture: string;
 }

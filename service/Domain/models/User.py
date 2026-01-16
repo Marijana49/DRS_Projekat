@@ -19,3 +19,4 @@ class User(db.Model):
     role = db.Column(db.Integer, nullable = False, default = UserRole.PLAYER.value)
     failed_attempts = db.Column(db.Integer, nullable=False, default=0)
     blocked_until = db.Column(db.DateTime, nullable=True, default=None)
+    profile_image = db.Column(db.String(255), nullable=True, default=None)
