@@ -1,17 +1,17 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthHook";
+import { useEffect } from "react";
 import { ProcitajPoKljucu } from "../../helpers/local_storage";
-import { ChangeUserInfo } from "../../components/user/UserInfo/ChangeUserInfo";
+import { ChangeProfilePicture } from "../../components/user/UserInfo/UploadProfilePicture";
 import { userAPI } from "../../api/user/UserAPIService";
 
-export default function ChangeUserDashboard() {
-    const {isAuthenticated, logout } = useAuth();
+export default function UploadProfilePicture() {
+    const {isAuthenticated, logout} = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         const token = ProcitajPoKljucu("authToken");
-        
+
         if(!isAuthenticated || !token){
             logout();
             navigate("/login");
@@ -20,7 +20,7 @@ export default function ChangeUserDashboard() {
 
     return(
         <main className="flex item-center justify-center">
-            <ChangeUserInfo userApi={userAPI}/>
+            <ChangeProfilePicture userApi={userAPI}/>
         </main>
-    );
+    )
 }

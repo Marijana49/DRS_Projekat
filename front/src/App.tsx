@@ -12,6 +12,7 @@ import { userAPI } from "./api/user/UserAPIService";
 import UserDashboard from "./pages/user/userDashboard";
 import AdminDashboard from "./pages/user/adminDashboard";
 import ChangeUserDashboard from "./pages/user/changeUserDashboard";
+import UploadProfilePicture from "./pages/user/uploadProfilePicture";
 function App() {
   return (
     <Routes>
@@ -22,8 +23,11 @@ function App() {
       <Route path="/profile" element ={
           <UserDashboard />
       } />
-      <Route path="/profil/edit" element={
+      <Route path="/profile/edit" element={
         <ChangeUserDashboard />
+      }/>
+      <Route path="profile/picture" element={
+        <UploadProfilePicture />
       }/>
 
       <Route path="/admin"
