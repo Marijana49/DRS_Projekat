@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { IUserAPIService } from "../../../api/user/IUserAPIService";
 import { ProcitajPoKljucu } from "../../../helpers/local_storage";
+import { useNavigate } from "react-router-dom";
 
 interface ChangePictureProps {
     userApi: IUserAPIService
@@ -11,7 +12,11 @@ export const ChangeProfilePicture = ({userApi} : ChangePictureProps) =>{
     const [pictureFile, setPictureFile]= useState<File | null>(null);
     const [picturePreview, setPicturePreview] = useState("");
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
+    const handleBack = () => {
+        navigate("/profile");
+    }
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if(e.target.files?.[0]){
@@ -85,6 +90,9 @@ export const ChangeProfilePicture = ({userApi} : ChangePictureProps) =>{
                     </button>
                 </div>
                 </form>
+                <div>
+                    <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleBack}> Back </button>
+                </div>
                 </div>
             </div> 
     );   

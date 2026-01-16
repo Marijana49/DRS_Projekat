@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import type{ UserDTO } from "../../../models/users/UserDTO";
 import { useAuth } from "../../../hooks/useAuthHook";
-import { ObrisiPoKljucu } from "../../../helpers/local_storage";
 import type { IUserAPIService } from "../../../api/user/IUserAPIService";
 import { parseRole } from "../../../helpers/parseRole";
+import { useNavigate } from "react-router-dom";
 
 interface UserTableProps {
  userApi: IUserAPIService
@@ -11,13 +11,14 @@ interface UserTableProps {
 
 export function UserTable({userApi}: UserTableProps){
     const [users, setUsers] =  useState<UserDTO[]>([]);
-    const { token, logout } = useAuth();
+    const { token } = useAuth();
+    const navigate = useNavigate();
 
+    const handleBack = () => {
+        navigate("/profile");
+    }
     if(!token)return null;
-    const handleLogout = () => {
-        ObrisiPoKljucu("authToken");
-        logout();
-    };
+
 
     const handleDelete = async (id: number) => {
         const confirmed = window.confirm("Da li ste sigurni da želite obrisati korisnika?");
@@ -91,10 +92,10 @@ export function UserTable({userApi}: UserTableProps){
             </table>
 
             </div>
-            <div className="flex flec-wrap -mx-4 mb-6 item-center justify-between">
+            <div className="flex flex-wrap -mx-4 mb-6 item-center px-10 justify-left">
 
-                <button onClick={handleLogout} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500">
-                    Logout
+                <button onClick={handleBack} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500">
+                    Back
                 </button>
             </div>
         </div>
