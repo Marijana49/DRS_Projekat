@@ -19,11 +19,9 @@ export function UserInfo({userAPI} : UserInfoProps){
     const [user, setUser] = useState<UserDTO | null>(null)
     const navigate = useNavigate();
     
-    if(!token) return null;
-    
     useEffect(()=> {
             (async ()=> {
-                const data = await userAPI.getUser(token);
+                const data = await userAPI.getUser(token ?? "");
                 setUser(data);
             })();
         }, [token, userAPI]);
