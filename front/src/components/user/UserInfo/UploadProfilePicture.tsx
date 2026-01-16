@@ -45,7 +45,9 @@ export const ChangeProfilePicture = ({userApi} : ChangePictureProps) =>{
         const token = ProcitajPoKljucu("authToken");
         if(!token)return null;
         if(pictureFile != null){
-            const answer = await userApi.uploadPicture(token);
+            const formData = new FormData;
+            formData.append("image", pictureFile);
+            const answer = await userApi.uploadPicture(token, formData);
             if(!answer)
                 setError(answer);
         }

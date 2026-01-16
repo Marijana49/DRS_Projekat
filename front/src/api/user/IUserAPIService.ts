@@ -11,5 +11,5 @@ export interface IUserAPIService {
         country: string, 
         street: string, 
         streetNumber: number,) : Promise<UserResponse>;
-    uploadPicture(token: string) :Promise <UserResponse>;
+    uploadPicture(token: string, imageFile: FormData) :Promise <UserResponse>;
 }

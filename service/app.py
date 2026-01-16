@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from Database.InitializationDB import db
 from Domain.models.User import User
 from Domain.models.Email import Email
@@ -86,10 +86,9 @@ def login():
     user.blocked_until = None
     db.session.commit()
 
-    print(user.id)
-    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.country, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
+
+    additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.country, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role, 'picture': user.profile_image}
     token = create_access_token(identity=str(user.id), additional_claims= additonal_claims)
-    print(token)
     return jsonify(access_token=token)
 
 @app.route("/logout", methods=["POST"])
@@ -111,7 +110,6 @@ def profile():
         })
 
     data = request.json
-    print(data)
     user.first_name = data.get("first_name", user.first_name)
     user.last_name = data.get("last_name", user.last_name)
     user.country = data.get("country", user.country)
@@ -142,6 +140,11 @@ def upload_profile_image():
 
     return jsonify({"message": "Slika uspešno dodata"})
 
+@app.route("/uploads/<path:filename>", methods=["GET"])
+def get_profile_image(filename):
+    path = "uploads/" + filename
+    response = send_file(path_or_file=path)
+    return response
 
 @app.route("/admin/users", methods=["GET"])
 @jwt_required()

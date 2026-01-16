@@ -22,7 +22,8 @@ const decodeJWT = (token: string): JwtTokenClaims | null => {
                 country: decoded.country,
                 street: decoded.street,
                 streetNumber: decoded.streetNumber,
-                role: decoded.role
+                role: decoded.role,
+                picture: decoded.picture
             };
         }
         return null;

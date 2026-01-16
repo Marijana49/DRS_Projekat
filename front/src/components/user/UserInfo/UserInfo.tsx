@@ -6,15 +6,20 @@ import { parseGender } from "../../../helpers/parseGender";
 import { parseRole } from "../../../helpers/parseRole";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export function UserInfo(){
     const token = ProcitajPoKljucu("authToken");
     const { logout } = useAuth();
     const navigate = useNavigate();
-
+    
     if(!token) return null;
+    
+    const {sub, firstName, lastName, email, birthDate, gender, country, street, streetNumber, role, picture} = jwtDecode<JwtTokenClaims>(token);
 
-    const {sub, firstName, lastName, email, birthDate, gender, country, street, streetNumber, role} = jwtDecode<JwtTokenClaims>(token);
-    const picture = "/src/assets/default_icon.jpg";
+    
+    const newPicture = `${API_URL}/` + picture;
+    console.log(newPicture);
 
     const handleLogout = () => {
         ObrisiPoKljucu("authToken");
@@ -40,9 +45,9 @@ export function UserInfo(){
                     Dobro Dosli {firstName}
                 </h1>
                 <div className="flex item-center justify-left">
-                    <img src={picture}
+                    <img src={picture ? `${API_URL}/`+ picture : "src/assets/default_icon.jpg"}
                         alt="Profile Picture"
-                        onError={(e) => (e.currentTarget.src = "/home/polylute/Documents/The Vault/Fax/DRS/DRS_Projekat/front/src/assets/default_icon.jpg")}
+                        onError={(e) => (e.currentTarget.src = "/src/assets/default_icon.jpg")}
                         style={{width: "160px", height: "160px"}}
                     />
                     <div className="px-10 py-15">

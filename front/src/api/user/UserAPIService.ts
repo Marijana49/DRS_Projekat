@@ -56,11 +56,12 @@ export const userAPI: IUserAPIService = {
         street: string,
         streetNumber: number): Promise<UserResponse> {
         try {
-            const answer = await axios.put<UserResponse>(`${API_URL}/profil`, {
-                headers: {
+            const answer = await axios.put<UserResponse>(`${API_URL}/profile`, 
+                {first_name:firstName, last_name:lastName, country, street, street_number:streetNumber},
+                {headers: {
                     Authorization: `Bearer ${token}`,
-                }, first_name: firstName, last_name: lastName, country: country, street: street, street_number: streetNumber
-            });
+                },}
+            );
             return answer.data;
         } catch {
             return {
@@ -70,7 +71,18 @@ export const userAPI: IUserAPIService = {
             };
         }
     },
-    uploadPicture: function (token: string): Promise<UserResponse> {
-        throw new Error("Function not implemented.");
-    }
+    async uploadPicture(token: string, imageFile:FormData): Promise<UserResponse> {
+        try{
+            const answer = await axios.post<UserResponse>(`${API_URL}/profile/image`, imageFile, 
+                {headers : {Authorization : `Bearer ${token}`}
+            });
+            return answer.data;
+        }catch{
+            return {
+                success: false,
+                message: "Error",
+                data: undefined
+            };
+        }
+    },
 };
