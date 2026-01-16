@@ -85,4 +85,27 @@ export const userAPI: IUserAPIService = {
             };
         }
     },
+
+    async getUser(token) : Promise<UserDTO>{
+        try{
+            const answer = await axios.get<UserDTO>(`${API_URL}/profile`, 
+                {headers : {Authorization : `Bearer ${token}`}
+            });
+            return answer.data;
+        }catch{
+            return{
+                id: 0,
+                firstName: "", 
+                lastName: "" ,
+                email: "",
+                birthDate: new Date,
+                gender: "",
+                country: "", 
+                street: "",
+                streetNumber: 0,
+                role: "",
+                picture: ""
+            }
+        }
+    },
 };

@@ -3,6 +3,7 @@ import { useAuth } from "../../hooks/useAuthHook";
 import { useEffect } from "react";
 import { ProcitajPoKljucu } from "../../helpers/local_storage";
 import { UserInfo } from "../../components/user/UserInfo/UserInfo";
+import { userAPI } from "../../api/user/UserAPIService";
 
 export default function UserDashboard() {
     const {isAuthenticated, logout } = useAuth();
@@ -19,7 +20,7 @@ export default function UserDashboard() {
 
     return(
         <main className="flex item-center justify-center">
-            <UserInfo />
+            <UserInfo userAPI={userAPI}/>
             
         </main>
     );

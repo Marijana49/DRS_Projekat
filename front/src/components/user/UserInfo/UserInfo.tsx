@@ -1,25 +1,33 @@
-import { jwtDecode } from "jwt-decode";
-import { ObrisiPoKljucu, ProcitajPoKljucu } from "../../../helpers/local_storage";
+import { ObrisiPoKljucu } from "../../../helpers/local_storage";
 import { useAuth } from "../../../hooks/useAuthHook";
-import type { JwtTokenClaims } from "../../../types/Auth/JwtTokenClaims";
 import { parseGender } from "../../../helpers/parseGender";
 import { parseRole } from "../../../helpers/parseRole";
 import { useNavigate } from "react-router-dom";
+import type { IUserAPIService } from "../../../api/user/IUserAPIService";
+import { useEffect, useState } from "react";
+import type { UserDTO } from "../../../models/users/UserDTO";
+import { parseDate } from "../../../helpers/parseDate";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export function UserInfo(){
-    const token = ProcitajPoKljucu("authToken");
-    const { logout } = useAuth();
+interface UserInfoProps{
+    userAPI : IUserAPIService
+}
+
+export function UserInfo({userAPI} : UserInfoProps){
+    const { token, logout } = useAuth();
+    const [user, setUser] = useState<UserDTO | null>(null)
     const navigate = useNavigate();
     
     if(!token) return null;
     
-    const {sub, firstName, lastName, email, birthDate, gender, country, street, streetNumber, role, picture} = jwtDecode<JwtTokenClaims>(token);
-
+    useEffect(()=> {
+            (async ()=> {
+                const data = await userAPI.getUser(token);
+                setUser(data);
+            })();
+        }, [token, userAPI]);
     
-    const newPicture = `${API_URL}/` + picture;
-    console.log(newPicture);
 
     const handleLogout = () => {
         ObrisiPoKljucu("authToken");
@@ -39,13 +47,16 @@ export function UserInfo(){
 
     return(        
         <div className="container px-4 mx-auto min-h-screen min-w-screen">
+            {user != null ? (
+
+            
             <div className="max-w-5xl mx-auto">
 
                 <h1 className="text-3xl font-extrabold text-center text-indigo-900 mb-6">
-                    Dobro Dosli {firstName}
+                    Dobro Dosli {user.firstName}
                 </h1>
                 <div className="flex item-center justify-left">
-                    <img src={picture ? `${API_URL}/`+ picture : "src/assets/default_icon.jpg"}
+                    <img src={user.picture ? `${API_URL}/`+ user.picture : "src/assets/default_icon.jpg"}
                         alt="Profile Picture"
                         onError={(e) => (e.currentTarget.src = "/src/assets/default_icon.jpg")}
                         style={{width: "160px", height: "160px"}}
@@ -57,21 +68,21 @@ export function UserInfo(){
                     </div>
                 </div>
                 <div className="space-y-3 text-lg text-indigo-300">
-                    <p><strong>ID:</strong> {sub}</p>
-                    <p><strong>Name:</strong> {firstName}</p>
-                    <p><strong>Last Name:</strong> {lastName}</p>
-                    <p><strong>Email:</strong> {email}</p>
-                    <p><strong>Gender:</strong> {parseGender(gender)}</p>
-                    <p><strong>Country:</strong> {country}</p>
-                    <p><strong>Birtday:</strong> {birthDate}</p>
-                    <p><strong>Street:</strong> {street}</p>
-                    <p><strong>House Number:</strong> {streetNumber}</p>
-                    <p><strong>Role:</strong> {parseRole(role)}</p>
+                    <p><strong>ID:</strong> {user.id}</p>
+                    <p><strong>Name:</strong> {user.firstName}</p>
+                    <p><strong>Last Name:</strong> {user.lastName}</p>
+                    <p><strong>Email:</strong> {user.email}</p>
+                    <p><strong>Gender:</strong> {parseGender(user.gender)}</p>
+                    <p><strong>Country:</strong> {user.country}</p>
+                    <p><strong>Birtday:</strong> {parseDate(user.birthDate)}</p>
+                    <p><strong>Street:</strong> {user.street}</p>
+                    <p><strong>House Number:</strong> {user.streetNumber}</p>
+                    <p><strong>Role:</strong> {parseRole(user.role)}</p>
                 </div>
-                <div className="flex flec-wrap -mx-4 mb-6 item-center justify-between">
+                <div className="flex flec-wrap -mx-4 mb-6 item-center justify-between mt-2">
                     <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleLogout}> Logout </button>
                     <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleEdit}> Edit </button>
-                    {parseRole(role) == "ADMINISTRATOR" ? (
+                    {parseRole(user.role) == "ADMINISTRATOR" ? (
                         <button onClick={handelSwitchPage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" >User List</button>
                     ) : (
                         <div></div>
@@ -79,7 +90,7 @@ export function UserInfo(){
 
                     }
                 </div>
-            </div>
+            </div>):( <div>Nema Usera</div> )}
        </div>
     );
 }

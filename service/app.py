@@ -103,10 +103,17 @@ def profile():
 
     if request.method == "GET":
         return jsonify({
-            "first_name": user.first_name,
-            "last_name": user.last_name,
+            "id": user.id,
+            "firstName": user.first_name,
+            "lastName": user.last_name,
             "email": user.email,
-            "role": user.role
+            "birthDate": user.birth_date.strftime("%Y-%m-%d"),
+            "gender": user.gender,
+            "country": user.country,
+            "street": user.street,
+            "streetNumber": user.street_number,
+            "role": user.role,
+            "picture": user.profile_image
         })
 
     data = request.json

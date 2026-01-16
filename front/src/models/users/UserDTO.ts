@@ -9,4 +9,5 @@ export interface UserDTO {
     street: string;
     streetNumber: number;
     role: string;
+    picture: string;
 }
