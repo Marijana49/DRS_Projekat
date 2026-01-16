@@ -1,14 +1,14 @@
 import type { IUserAPIService } from "./IUserAPIService";
 import type { UserDTO } from "../../models/users/UserDTO";
 import type { UserResponse } from "../../types/User/UserResponse";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 const API_URL: string = import.meta.env.VITE_API_URL;
 
 console.log(API_URL);
 export const userAPI: IUserAPIService = {
     async getAllUsers(token: string): Promise<UserDTO[]> {
         try {
-            const answer = await axios.get<UserDTO[]>(`${API_URL}/admin/users`,{
+            const answer = await axios.get<UserDTO[]>(`${API_URL}/admin/users`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -23,7 +23,7 @@ export const userAPI: IUserAPIService = {
         try {
             const answer = await axios.delete<UserResponse>(`${API_URL}/admin/role/${id}`, {
                 headers: {
-                    Authorization: `Bearers ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
             return answer.data;
@@ -40,7 +40,7 @@ export const userAPI: IUserAPIService = {
         try {
             const answer = await axios.put<UserResponse>(`${API_URL}/admin/user/${id}`, {
                 headers: {
-                    Authorization: `Bearers ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
             return answer.data;
@@ -60,10 +60,33 @@ export const userAPI: IUserAPIService = {
         street: string, 
         streetNumber: number,) : Promise<UserResponse> {
         try{
-            const answer = await axios.put<UserResponse>(`${API_URL}/profil`, {
+            const answer = await axios.put<UserResponse>(`${API_URL}/profile`, {
+                first_name: firstName, 
+                last_name: lastName, 
+                country: country, 
+                street: street, 
+                street_number: streetNumber, 
                 headers: {
-                    Authorization: `Bearers ${token}`,
-                }, first_name: firstName, last_name: lastName, country: country, street: street, street_number: streetNumber
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            return answer.data;
+        }catch(error){
+            var message = "Error";
+            if(isAxiosError(error)){
+                message = error.message 
+            }
+            return{
+                success: false,
+                message: message,
+                data: undefined
+            }
+        }
+    },
+
+    async uploadPicture(token: string) : Promise<UserResponse>{
+        try{
+            const answer = await axios.post<UserResponse>(`${API_URL}/profile/image`, { headers : {Authorization: `Bearer ${token}`},
             });
             return answer.data;
         }catch{

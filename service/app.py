@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from Domain.enums.UserRole import UserRole
 from Domain.enums.Gender import Gender
 from flask_cors import CORS
-import jwt
+
 
 app = Flask(__name__)
 CORS(app)  
@@ -20,7 +20,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:126261@loca
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
-app.config["JWT_TOKEN_LOCATION"] = "headers"
+# app.config["JWT_TOKEN_LOCATION"] = "headers"
 jwt = JWTManager(app)
 
 
@@ -93,10 +93,8 @@ def login():
     user.blocked_until = None
     db.session.commit()
 
-    print(user.id)
     additonal_claims = {'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email, 'birthDate': user.birth_date, 'gender': user.gender, 'country': user.gender, 'street': user.street, 'streetNumber': user.street_number, 'role': user.role}
     token = create_access_token(identity=user.id, additional_claims= additonal_claims)
-    print(token)
     return jsonify(access_token=token)
 
 @app.route("/logout", methods=["POST"])
@@ -105,10 +103,9 @@ def logout():
     return jsonify({"message": "Odjava uspješna"})
 
 @app.route("/profile", methods=["GET", "PUT"])
-@jwt_required()
+@jwt_required(locations='headers')
 def profile():
     user = User.query.get(get_jwt_identity())
-
     if request.method == "GET":
         return jsonify({
             "first_name": user.first_name,
@@ -118,6 +115,7 @@ def profile():
         })
 
     data = request.json
+    print(data)
     user.first_name = data.get("first_name", user.first_name)
     user.last_name = data.get("last_name", user.last_name)
     user.country = data.get("country", user.country)
@@ -150,10 +148,10 @@ def upload_profile_image():
 
 
 @app.route("/admin/users", methods=["GET"])
-@jwt_required()
+@jwt_required(locations='headers')
 def get_users():
+    token = request.headers.get('Authorization', type=str)
     admin = User.query.get(get_jwt_identity())
-
     if admin.role != UserRole.ADMINISTRATOR:
         return jsonify({"message": "Zabranjen pristup"}), 403
 
@@ -161,7 +159,14 @@ def get_users():
     return jsonify([
         {
             "id": u.id,
+            "firstName": u.first_name,
+            "lastName": u.last_name,
             "email": u.email,
+            "birthDate": u.birth_date,
+            "gender": u.gender,
+            "country": u.country,
+            "street": u.street,
+            "streetNumber": u.street_number,
             "role": u.role
         } for u in users
     ])

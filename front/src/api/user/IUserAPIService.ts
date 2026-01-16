@@ -5,10 +5,11 @@ export interface IUserAPIService {
     getAllUsers(token: string): Promise<UserDTO[]>;
     deleteUser(token: string, id:number): Promise<UserResponse>;
     changeUserRole(token: string, id:number): Promise<UserResponse>;
-    changeUserInformation(toke: string, 
+    changeUserInformation(token: string, 
         firstName: string,
         lastName: string,
         country: string, 
         street: string, 
         streetNumber: number,) : Promise<UserResponse>;
+    uploadPicture(token: string) :Promise <UserResponse>;
 }

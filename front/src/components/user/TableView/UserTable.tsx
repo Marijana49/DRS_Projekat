@@ -12,19 +12,20 @@ export function UserTable({userApi}: UserTableProps){
     const [users, setUsers] =  useState<UserDTO[]>([]);
     const { token, logout } = useAuth();
 
+    if(!token)return null;
     const handleLogout = () => {
         ObrisiPoKljucu("authToken");
         logout();
     };
     const handleDelete = (id: number) => {
-        userApi.deleteUser(token ?? "", id);
+        userApi.deleteUser(token, id);
     };
     const handleChangeRole = (id: number) => {
-        userApi.changeUserRole(token ?? "", id);
+        userApi.changeUserRole(token, id);
     };
     useEffect(()=> {
         (async ()=> {
-            const data = await userApi.getAllUsers(token ?? "");
+            const data = await userApi.getAllUsers(token);
             setUsers(data);
         })();
     }, [token, userApi]);

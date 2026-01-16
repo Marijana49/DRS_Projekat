@@ -25,7 +25,7 @@ export function ChangeUserInfo({ userApi }: UserInfoProps) {
 
         const {firstName, lastName, country, street, streetNumber} = jwtDecode<JwtTokenClaims>(token);
 
-        const answer = await userApi.changeUserInformation(token ?? "", firstName, lastName, country, street, streetNumber);
+        const answer = await userApi.changeUserInformation(token, firstName, lastName, country, street, streetNumber);
 
         if(!answer.success){
             setError(answer.message);
@@ -83,7 +83,7 @@ export function ChangeUserInfo({ userApi }: UserInfoProps) {
                     <label className="block mb-2 font-extrabold">Street Number</label>
                     <input
                         type="text"
-                        placeholder={streetNumber}
+                        placeholder={streetNumber.toString()}
                         value={streetNumber}
                         onChange={(e)=> setStNumber(e.target.value)}
                         className="inline-block w-full p-4 leading-6 text-lg font-extrabold placeholder-indigo-900 bg-indigo-100/70 shadow border-2 border-indigo-900 rounded"
