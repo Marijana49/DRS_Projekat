@@ -10,6 +10,8 @@ flask = "*"
 flask-jwt-extended = "*"
 mysql-connector-python = "*"
 datetime = "*"
+flask-socketio = "*"
+requests = "*"
 
 [dev-packages]
 pytest = "*"
