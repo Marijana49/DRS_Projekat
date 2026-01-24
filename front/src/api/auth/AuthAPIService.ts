@@ -1,6 +1,7 @@
 import type { IAuthAPIService } from "./IAuthAPIService";
 import axios from "axios";
 import type { AuthResponse } from "../../types/Auth/AuthResponse";
+import type { LoginResponse } from "../../types/Auth/LoginResponse";
 
 const API_URL: string = import.meta.env.VITE_API_URL;
 
@@ -12,8 +13,11 @@ export const authApi: IAuthAPIService = {
         password: string
     ): Promise<AuthResponse> {
         try {
-            const answer = await axios.post<AuthResponse>(`${API_URL}/login`, {email, password});
-            return answer.data;
+            const answer = await axios.post<LoginResponse>(`${API_URL}/login`, {email, password});
+            return {
+                success: true,
+                message: "Login successful!",
+                data: answer.data.access_token}
         }catch (error) {
             let message = "Login error";
 
@@ -22,8 +26,8 @@ export const authApi: IAuthAPIService = {
             }
             return{
                 success: false,
-                message,
-                data: undefined,
+                message: message,
+                data: undefined
             }
         }
     },

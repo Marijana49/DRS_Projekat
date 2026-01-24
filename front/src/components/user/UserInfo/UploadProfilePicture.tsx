@@ -91,7 +91,7 @@ export const ChangeProfilePicture = ({userApi} : ChangePictureProps) =>{
                 </div>
                 </form>
                 <div>
-                    <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleBack}> Back </button>
+                    <button className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleBack}> Back </button>
                 </div>
                 </div>
             </div> 

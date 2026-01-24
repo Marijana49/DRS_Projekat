@@ -95,6 +95,7 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({children}) => {
         setToken(null);
         setUser(null);
         ObrisiPoKljucu("authToken");
+        ObrisiPoKljucu("quizId");
     };
 
     const isAuthenticated = !!user && !!token;

@@ -3,10 +3,8 @@ export interface QuizDTO {
     quizName: string; 
     questions: string[]; 
     answers: string[];
-    points: number; 
+    points: number[]; 
     correctAnswers:string[];
     duration: number; 
     author: string;
-    status: string;
-    rejectionReason: string;
 }

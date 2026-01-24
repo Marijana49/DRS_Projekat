@@ -9,7 +9,7 @@ export function validateAuthData(email?: string, password?: string) : Validation
     }
 
     if(password.length < 6){
-        return {success: false, message: 'Password must be 8 characters or longer'}
+        return {success: false, message: 'Password must be 6 characters or longer'}
     }
     return {success: true};
 }

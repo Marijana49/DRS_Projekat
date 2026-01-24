@@ -48,17 +48,18 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
     };
 
     return(
-        <div className="container px-4 mx-auto">
+        <div className="container px-4 py-20 mx-auto max-w-screen min-h-screen bg-zinc-700">
+            <div className="rounded-2xl shadow-2xl shadow-zinc-900 max-w-xl mx-auto bg-zinc-100 py-6">
             <div className="max-w-lg mx-auto">
                 <div className="text-center mb-6">
-                    <h2 className="text-3xl md:text-4xl font-extrabold">Create an account</h2>
+                    <h2 className="text-3xl md:text-4xl font-extrabold text-indigo-800">Create an account</h2>
                 </div>
             <form onSubmit={submitForm}>
                 <div className="mb-6">
                     <label className="block mb-2 font-extrabold">First Name</label>
                     <input
                         type="text"
-                        placeholder="Joe"
+                        placeholder="First Name"
                         value={firstName}
                         onChange={(e)=> setFirstName(e.target.value)}
                         className="inline-block w-full p-4 leading-6 text-lg font-extrabold placeholder-indigo-900 bg-indigo-100/70 shadow border-2 border-indigo-900 rounded"
@@ -88,7 +89,7 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
                     <label className="block mb-2 font-extrabold">Password</label>
                     <input
                         type="password"
-                        placeholder="your password"
+                        placeholder="Your Password"
                         value={password}
                         onChange={(e)=> setPassword(e.target.value)}
                         className="inline-block w-full p-4 leading-6 text-lg font-extrabold placeholder-indigo-900 bg-indigo-100/70 shadow border-2 border-indigo-900 rounded"
@@ -162,6 +163,7 @@ export function RegistrationForm({ authAPI }: AuthFormProps) {
                     Login
                 </Link>
             </p>
+            </div>
             </div>
         </div>
     );

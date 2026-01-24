@@ -3,7 +3,6 @@ import type { AuthFormProps } from "../../types/props/auth_form_props/AuthFormPr
 import { useAuth } from "../../hooks/useAuthHook";
 import { Link } from "react-router-dom";
 import { validateAuthData } from "../../api/validators/auth/AuthValidator";
-import { parseToken } from "../../helpers/parseToken";
 
 
 export function LoginForm({ authAPI }: AuthFormProps){
@@ -22,22 +21,25 @@ export function LoginForm({ authAPI }: AuthFormProps){
         }
 
         const answer = await authAPI.login(email, password);
-        const token = parseToken(answer);
-        if(!!token){
-            login(token);
+        
+        if(answer.success && answer.data != undefined){
+            login(answer.data);
+            
         }
-        else {
-            setError("Invalid Token");
+        else 
+            {
+            setError(answer.message);
             setEmail("");
             setPassword("");
         }
     };
 
     return (
-        <div className="container px-4 mx-auto min-h-screen min-w-screen">
+        <div className="container px-4 py-30 mx-auto min-h-screen min-w-screen bg-zinc-700">
+            <div className="rounded-2xl shadow-2xl shadow-zinc-900 max-w-xl mx-auto  bg-zinc-100 py-4">
             <div className="max-w-lg mx-auto">
                 <div className="text-center mb-6">
-            <h1 className="text-3xl md:text-4xl font-extrabold">Login</h1>
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-indigo-800">Login</h1>
                 </div>
             <form onSubmit={submitForm}>
                 <div className="mb-6">
@@ -64,17 +66,18 @@ export function LoginForm({ authAPI }: AuthFormProps){
                     <div className="w-full lg:w-auto px-4 mb-4 lg:mb-0">
                         {error && <p className="font-extrabold text-rose-700">{error}</p>}
                     </div>
-                    <button type="submit" className="inline-block w-full py-4 px-6 mb-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-800 hover:bg-indigo-900 border-3 border-indigo-900 shadow rounded transition duration-500">
+                    <button type="submit" className="inline-block w-full py-4 px-6 mb-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-800 hover:bg-indigo-900 shadow rounded transition duration-500">
                         Login
                     </button>
                 </div>
             </form>
-            <p className="text-center font-extrabold">
-                Not Registerd?{" "}
-                <Link to="/register" className="text-rose-600 hover:underline">
-                    Register
-                </Link>
-            </p>
+                <p className="text-center font-extrabold mb-4">
+                    Not Registerd?{" "}
+                    <Link to="/register" className="text-rose-600 hover:underline">
+                        Register
+                    </Link>
+                </p>
+            </div>
             </div>
         </div>
     );

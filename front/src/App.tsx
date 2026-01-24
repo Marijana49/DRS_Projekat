@@ -13,6 +13,11 @@ import UserDashboard from "./pages/user/userDashboard";
 import AdminDashboard from "./pages/user/adminDashboard";
 import ChangeUserDashboard from "./pages/user/changeUserDashboard";
 import UploadProfilePicture from "./pages/user/uploadProfilePicture";
+import QuizListPage from "./pages/quiz/quizListPage";
+import { QuizAPI } from "./api/quiz/QuizAPIService";
+import QuizPage from "./pages/quiz/quizPage";
+import CreateQuizPage from "./pages/quiz/createQuizPage";
+import ToolBar from "./components/toolbar/ToolBar";
 function App() {
   return (
     <Routes>
@@ -29,7 +34,20 @@ function App() {
       <Route path="profile/picture" element={
         <UploadProfilePicture />
       }/>
-
+      <Route path="/quizes" element={
+        <QuizListPage quizAPI={QuizAPI}/>
+      }/>
+      <Route path="/quiz/play" element={
+        <QuizPage quizAPI={QuizAPI}/>
+      }/>
+      <Route path="/quiz/create" element={
+        <CreateQuizPage quizAPI={QuizAPI}/>
+      }/>
+      <Route path="/test" element={
+        <ToolBar/>
+      }
+      
+      />
       <Route path="/admin"
         element = {
           <ProtectedRoute requiredRole="ADMINISTRATOR">

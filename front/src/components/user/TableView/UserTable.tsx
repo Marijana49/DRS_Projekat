@@ -30,10 +30,17 @@ export function UserTable({userApi}: UserTableProps){
         alert(result.message);
     };
 
-    const handleChangeRole = async (id: number) => {
-        const newRole = prompt("Enter new role: PLAYER or MODERATOR");
-        if (!newRole) return; 
-        await userApi.changeUserRole(token, id, newRole.toUpperCase());
+    const handleChangeRole = async (id: number, role: string) => {
+        var newRole: string = "";
+        if(parseRole(role) == "PLAYER"){
+            newRole = "MODERATOR";
+        }else if(parseRole(role) == "MODERATOR"){
+            newRole = "PLAYER";
+        }
+        if(newRole == "")return;
+        const confirmed = window.confirm("Are you sure you want to change this users role?");
+        if (!confirmed) return;
+        await userApi.changeUserRole(token, id, newRole);
 
         const data = await userApi.getAllUsers(token);
         setUsers(data);
@@ -69,10 +76,10 @@ export function UserTable({userApi}: UserTableProps){
                             <td className="px-4 py-2">{user.lastName}</td>
                             <td className="px-4 py-2">{user.email}</td>
                             <td className="px-4 py-2">{parseRole(user.role)}</td>
-                            <td className="px-4 py-2">
-                                <button onClick={() => handleChangeRole(user.id)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500">
+                            <td className="px-4 py-2">{parseRole(user.role) != "ADMINISTRATOR" ? (
+                                <button onClick={() => handleChangeRole(user.id, user.role)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500">
                                     Change Role
-                                </button>
+                                </button>) : ( <td></td> ) }
                             </td>
                             <td className="px-4 py-2">
                                 <button onClick={() => handleDelete(user.id)} className="inline-block bg-rose-700 text-white px-6 py-2 rounded hover:bg-rose-900 transition duration-500">
@@ -94,7 +101,7 @@ export function UserTable({userApi}: UserTableProps){
             </div>
             <div className="flex flex-wrap -mx-4 mb-6 item-center px-10 justify-left">
 
-                <button onClick={handleBack} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500">
+                <button onClick={handleBack} className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500">
                     Back
                 </button>
             </div>

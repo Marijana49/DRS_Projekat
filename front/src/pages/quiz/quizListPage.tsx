@@ -1,31 +1,31 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useEffect } from "react";
-import { ProcitajPoKljucu } from "../../helpers/local_storage";
-import { UserInfo } from "../../components/user/UserInfo/UserInfo";
-import { userAPI } from "../../api/user/UserAPIService";
+import { QuizList } from "../../components/quiz/QuizList";
+import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import ToolBar from "../../components/toolbar/ToolBar";
 
-export default function UserDashboard() {
-    const {isAuthenticated, logout } = useAuth();
+interface QuizListPageProps{
+    quizAPI: IQuizAPIService;
+}
+
+export default function QuizListPage({ quizAPI} : QuizListPageProps){
+    const { token, isAuthenticated, logout} = useAuth();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const token = ProcitajPoKljucu("authToken");
-        
+    useEffect(()=>{
         if(!isAuthenticated || !token){
             logout();
             navigate("/login");
         }
     }, [isAuthenticated, logout, navigate]);
 
-    return(
+    return (
         <main className="">
             <div className="max-h-10">
                 <ToolBar/>
             </div>
-            <UserInfo userAPI={userAPI}/>
-            
+            <QuizList quizAPI = {quizAPI}/>
         </main>
-    );
+    )
 }

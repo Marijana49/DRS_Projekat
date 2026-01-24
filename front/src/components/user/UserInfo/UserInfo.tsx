@@ -60,7 +60,7 @@ export function UserInfo({userAPI} : UserInfoProps){
                         style={{width: "160px", height: "160px"}}
                     />
                     <div className="px-10 py-15">
-                        <button onClick={handleChangeImage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500">
+                        <button onClick={handleChangeImage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500">
                             Edit Picture
                         </button>
                     </div>
@@ -78,10 +78,10 @@ export function UserInfo({userAPI} : UserInfoProps){
                     <p><strong>Role:</strong> {parseRole(user.role)}</p>
                 </div>
                 <div className="flex flec-wrap -mx-4 mb-6 item-center justify-between mt-2">
-                    <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleLogout}> Logout </button>
-                    <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleEdit}> Edit </button>
+                    <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleLogout}> Logout </button>
+                    <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleEdit}> Edit </button>
                     {parseRole(user.role) == "ADMINISTRATOR" ? (
-                        <button onClick={handelSwitchPage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" >User List</button>
+                        <button onClick={handelSwitchPage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500" >User List</button>
                     ) : (
                         <div></div>
                     )
