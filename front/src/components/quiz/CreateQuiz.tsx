@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, type ChangeEvent } from "react";
 import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
 
@@ -18,13 +18,14 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
     const [duration, setDuration] = useState("");
     const [error, setError] = useState("");
 
-    const handleQuestionChange = (index: number, event) => {
+    const handleQuestionChange = (index: number, event: ChangeEvent<HTMLInputElement>) => {
         let data = [...questions]; 
-        data[index][event.target.name] = event.target.value;
+        let element = event.target.name;
+        data[index][element] = event.target.value;
         setQuestions(data);
     }
 
-    const handleAnswerChange = (index: number, index2: number, event) => {
+    const handleAnswerChange = (index: number, index2: number, event: ChangeEvent<HTMLInputElement>) => {
         let data = [...questions];
         let data2 = data[index]["answers"];
         data2[index2]["answer"] = event.target.value;

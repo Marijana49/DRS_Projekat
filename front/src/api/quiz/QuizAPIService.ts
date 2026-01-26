@@ -51,10 +51,10 @@ export const QuizAPI : IQuizAPIService = {
             }
         }
     },
-    async submitQuiz(token: string, id: number): Promise<QuizResponse>{
+    async submitQuiz(token: string, id: number, answers: string[], duration: number): Promise<QuizResponse>{
         try{
             const answer = await axios.post<QuizResponse>(`${API_URL}/quiz/${id}/submit`, 
-                {quiz_id: id}, 
+                {answers: answers, spentTime: duration}, 
                 {headers: {Authorization: `Bearer ${token}`}});
             return answer.data;
         }catch{

@@ -35,21 +35,23 @@ export function QuizList({quizAPI}: QuizListProps){
                 <div className="grid grid-cols-2 gap-5 text-center">
                     {quizes.length > 0 ? (quizes.map(quiz => (
 
-                        <button onClick = {() => handlePlay(quiz.id)} className="p-0.5 bg-blue-900  hover:bg-linear-to-r hover:from-blue-500 hover:to-purple-400 hover:shadow-2xl transition duration-400 shadow shadow-blue-700">
+                        <button onClick = {() => handlePlay(quiz.id)} className="p-0.5 bg-blue-900  hover:bg-linear-to-r hover:from-blue-500 hover:to-purple-400 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700">
                             <div className="bg-indigo-200/90">
                                 <h3 className="text-2xl font-bold text-indigo-900/75">{quiz.quizName}</h3>
                                 <div className="inline-block mr-4">
-                                    Duration: {quiz.duration} min
+                                    Duration: {quiz.duration}min
                                 </div>
-                                <div className="inline-block">by {quiz.duration}</div>
+                                <div className="inline-block">by {quiz.author}</div>
                                 <div>
                                 </div>
                             </div>
-                    </button>
+                        </button>
                     )) 
-                    ):( <div className="text-gray-500 font-extrabold justify-center text-2xl text-center col-span-2 py-10">
-                            Sorry, no quizes are currently available
-                        </div>)}
+                    ):( 
+                    <div className="text-gray-500 font-extrabold justify-center text-2xl text-center col-span-2 py-10">
+                        Sorry, no quizes are currently available
+                    </div>
+                    )}
                 </div>
             </div>
         </div>

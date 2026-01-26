@@ -17,7 +17,6 @@ import QuizListPage from "./pages/quiz/quizListPage";
 import { QuizAPI } from "./api/quiz/QuizAPIService";
 import QuizPage from "./pages/quiz/quizPage";
 import CreateQuizPage from "./pages/quiz/createQuizPage";
-import ToolBar from "./components/toolbar/ToolBar";
 function App() {
   return (
     <Routes>
@@ -41,13 +40,10 @@ function App() {
         <QuizPage quizAPI={QuizAPI}/>
       }/>
       <Route path="/quiz/create" element={
-        <CreateQuizPage quizAPI={QuizAPI}/>
+        <ProtectedRoute requiredRole={"MODERATOR"}>
+          <CreateQuizPage quizAPI={QuizAPI}/>
+        </ProtectedRoute>
       }/>
-      <Route path="/test" element={
-        <ToolBar/>
-      }
-      
-      />
       <Route path="/admin"
         element = {
           <ProtectedRoute requiredRole="ADMINISTRATOR">
