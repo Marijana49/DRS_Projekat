@@ -102,10 +102,11 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
         const answer = await quizAPI.createQuiz(token ?? "", quizName, questionsToSend, answersToSend, pointsToSend, correctAnswersToSend, parsedDuration);
 
         if(!answer.success){
-
-        }else{
             setError(answer.message);
+        }else{
+            setError("Quiz created");
         }
+
     };
     return(
     <div className="container px-4 py-20 mx-auto max-w-screen min-h-screen bg-zinc-700">

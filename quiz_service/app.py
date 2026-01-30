@@ -12,126 +12,170 @@ from Database.InitializationDB import db
 from Domain.models.Quiz import Quiz
 from Domain.models.QuizResults import QuizResult
 
-
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+
+CORS(
+    app,
+    resources={r"/*": {"origins": "http://localhost:5173"}},
+    supports_credentials=True
+)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:1234@localhost:3306/quiz_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ECHO"] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
 
-jwt = JWTManager(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
-
 db.init_app(app)
+jwt = JWTManager(app)
+socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5173"])
 
-@app.route("/quiz", methods=["POST"])
-@jwt_required()
+with app.app_context():
+    db.create_all()
+
+
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = app.make_response("")
+        response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+
+@app.route("/quiz", methods=["POST", "OPTIONS"])
 def create_quiz():
-    claims = get_jwt()
+    if request.method == "OPTIONS":
+        return '', 200  
 
-    if claims["role"] != "MODERATOR":
-        return jsonify({"message": "Unauthorized"}), 403
+    @jwt_required()
+    def inner():
+        claims = get_jwt()
+        if claims["role"] != "MODERATOR":
+            return jsonify({"message": "Unauthorized"}), 403
 
-    data = request.json
+        data = request.json
+        quiz = Quiz(
+            quiz_name=data["quizName"],
+            questions=data["questions"],
+            answers=data["answers"],
+            correct_answers=data["correctAnswers"],
+            question_points=data["questionPoints"],
+            duration=data["duration"],
+            author=claims["email"],
+            status="PENDING"
+        )
 
-    quiz = Quiz(
-        quiz_name=data["quizName"],
-        questions=data["questions"],
-        answers=data["answers"],
-        correct_answers=data["correctAnswers"],
-        question_points=data["questionPoints"],
-        duration=data["duration"],
-        author=claims["email"],
-        status="PENDING"
-    )
+        db.session.add(quiz)
+        db.session.commit()
 
-    db.session.add(quiz)
-    db.session.commit()
+        socketio.emit("new_quiz", {
+            "quizId": quiz.id,
+            "quizName": quiz.quiz_name,
+            "author": quiz.author
+        })
 
-    socketio.emit("new_quiz", {
-        "quizId": quiz.id,
-        "quizName": quiz.quiz_name,
-        "author": quiz.author
-    })
+        return jsonify({"message": "Quiz sent for approval"}), 201
 
-    return jsonify({"message": "Quiz sent for approval"}), 201
+    return inner()
 
 
-@app.route("/admin/quiz/<int:quiz_id>/approve", methods=["PUT"])
-@jwt_required()
+@app.route("/admin/quiz/<int:quiz_id>/approve", methods=["PUT", "OPTIONS"])
 def approve_quiz(quiz_id):
-    claims = get_jwt()
+    if request.method == "OPTIONS":
+        return '', 200
 
-    if claims["role"] != "ADMINISTRATOR":
-        return jsonify({"message": "Unauthorized"}), 403
+    @jwt_required()
+    def inner():
+        claims = get_jwt()
+        if claims["role"] != "ADMINISTRATOR":
+            return jsonify({"message": "Unauthorized"}), 403
 
-    quiz = Quiz.query.get(quiz_id)
-    if not quiz:
-        return jsonify({"message": "Quiz not found"}), 404
+        quiz = Quiz.query.get(quiz_id)
+        if not quiz:
+            return jsonify({"message": "Quiz not found"}), 404
 
-    quiz.status = "APPROVED"
-    quiz.reject_reason = None
-    db.session.commit()
+        quiz.status = "APPROVED"
+        quiz.reject_reason = None
+        db.session.commit()
 
-    return jsonify({"message": "Quiz approved"})
+        socketio.emit("quiz_approved", {
+            "id": quiz.id,
+            "quizName": quiz.quiz_name,
+            "duration": quiz.duration,
+            "author": quiz.author
+        })
+
+        return jsonify({"message": "Quiz approved"})
+
+    return inner()
 
 
-@app.route("/admin/quiz/<int:quiz_id>/reject", methods=["PUT"])
-@jwt_required()
+@app.route("/admin/quiz/<int:quiz_id>/reject", methods=["PUT", "OPTIONS"])
 def reject_quiz(quiz_id):
-    claims = get_jwt()
+    if request.method == "OPTIONS":
+        return '', 200
 
-    if claims["role"] != "ADMINISTRATOR":
-        return jsonify({"message": "Unauthorized"}), 403
+    @jwt_required()
+    def inner():
+        claims = get_jwt()
+        if claims["role"] != "ADMINISTRATOR":
+            return jsonify({"message": "Unauthorized"}), 403
 
-    data = request.json
-    quiz = Quiz.query.get(quiz_id)
+        data = request.json
+        quiz = Quiz.query.get(quiz_id)
+        if not quiz:
+            return jsonify({"message": "Quiz not found"}), 404
 
-    if not quiz:
-        return jsonify({"message": "Quiz not found"}), 404
+        quiz.status = "REJECTED"
+        quiz.reject_reason = data["reason"]
+        db.session.commit()
 
-    quiz.status = "REJECTED"
-    quiz.reject_reason = data["reason"]
-    db.session.commit()
+        return jsonify({"message": "Quiz rejected"})
 
-    return jsonify({"message": "Quiz rejected"})
+    return inner()
 
 
-@app.route("/quiz", methods=["GET"])
-@jwt_required()
+@app.route("/quiz", methods=["GET", "OPTIONS"])
 def get_quizzes():
-    quizzes = Quiz.query.filter_by(status="APPROVED").all()
+    if request.method == "OPTIONS":
+        return '', 200
 
-    return jsonify([
-        {
-            "id": q.id,
-            "quizName": q.quiz_name,
-            "duration": q.duration,
-            "author": q.author
-        } for q in quizzes
-    ])
+    @jwt_required()
+    def inner():
+        quizzes = Quiz.query.filter_by(status="APPROVED").all()
+        return jsonify([
+            {"id": q.id, "quizName": q.quiz_name, "duration": q.duration, "author": q.author}
+            for q in quizzes
+        ])
+
+    return inner()
 
 
-@app.route("/quiz/<int:quiz_id>/start", methods=["POST"])
-@jwt_required()
+@app.route("/quiz/<int:quiz_id>/start", methods=["POST", "OPTIONS"])
 def start_quiz(quiz_id):
-    quiz = Quiz.query.get(quiz_id)
+    if request.method == "OPTIONS":
+        return '', 200
 
-    if not quiz or quiz.status != "APPROVED":
-        return jsonify({"message": "Quiz not available"}), 403
+    @jwt_required()
+    def inner():
+        quiz = Quiz.query.get(quiz_id)
+        if not quiz or quiz.status != "APPROVED":
+            return jsonify({"message": "Quiz not available"}), 403
 
-    return jsonify({
-        "quizId": quiz.id,
-        "questions": quiz.questions,
-        "answers": quiz.answers,
-        "duration": quiz.duration
-    })
+        return jsonify({
+            "quizId": quiz.id,
+            "questions": quiz.questions,
+            "answers": quiz.answers,
+            "duration": quiz.duration
+        })
+
+    return inner()
 
 
 def process_quiz_async(quiz, user_answers, player_id, spent_time, player_email):
-    time.sleep(5) 
-
+    time.sleep(5)
     total_points = 0
     for i, correct in enumerate(quiz.correct_answers):
         if set(correct) == set(user_answers[i]):
@@ -157,47 +201,46 @@ def process_quiz_async(quiz, user_answers, player_id, spent_time, player_email):
     )
 
 
-@app.route("/quiz/<int:quiz_id>/submit", methods=["POST"])
-@jwt_required()
+@app.route("/quiz/<int:quiz_id>/submit", methods=["POST", "OPTIONS"])
 def submit_quiz(quiz_id):
-    data = request.json
-    quiz = Quiz.query.get(quiz_id)
+    if request.method == "OPTIONS":
+        return '', 200
 
-    if not quiz:
-        return jsonify({"message": "Quiz not found"}), 404
+    @jwt_required()
+    def inner():
+        data = request.json
+        quiz = Quiz.query.get(quiz_id)
+        if not quiz:
+            return jsonify({"message": "Quiz not found"}), 404
 
-    claims = get_jwt()
-    player_id = get_jwt_identity()
-    player_email = claims["email"]
+        claims = get_jwt()
+        player_id = get_jwt_identity()
+        player_email = claims["email"]
 
-    thread = Thread(
-        target=process_quiz_async,
-        args=(
-            quiz,
-            data["answers"],
-            player_id,
-            data["spentTime"],
-            player_email
+        thread = Thread(
+            target=process_quiz_async,
+            args=(quiz, data["answers"], player_id, data["spentTime"], player_email)
         )
-    )
-    thread.start()
+        thread.start()
 
-    return jsonify({"message": "Quiz is being processed"})
+        return jsonify({"message": "Quiz is being processed"})
+
+    return inner()
 
 
-@app.route("/quiz/<int:quiz_id>/ranking", methods=["GET"])
+@app.route("/quiz/<int:quiz_id>/ranking", methods=["GET", "OPTIONS"])
 def quiz_ranking(quiz_id):
+    if request.method == "OPTIONS":
+        return '', 200
+
     results = QuizResult.query \
         .filter_by(quiz_id=quiz_id) \
         .order_by(QuizResult.points.desc()) \
         .all()
 
     return jsonify([
-        {
-            "playerId": r.player_id,
-            "points": r.points,
-            "spentTime": r.spent_time
-        } for r in results
+        {"playerId": r.player_id, "points": r.points, "spentTime": r.spent_time}
+        for r in results
     ])
 
 
@@ -207,4 +250,7 @@ def handle_connect():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+        print("Tables created!")
     socketio.run(app, debug=True)
