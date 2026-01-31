@@ -45,7 +45,7 @@ def quizzes():
         ])
 
     claims = get_jwt()
-    if not claims or claims.get("role") != "MODERATOR":
+    if not claims or claims.get("role") != 2:
         return jsonify({"message": "Unauthorized"}), 403
 
     data = request.json
@@ -53,7 +53,7 @@ def quizzes():
         quiz_name=data["quizName"],
         questions=data["questions"],
         answers=data["answers"],
-        question_points=data["questionPoints"],
+        points=data["points"],
         correct_answers=data["correctAnswers"],
         duration=data["duration"],
         author=claims["email"],
@@ -197,4 +197,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         print("Tables created!")
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, port=5001)
