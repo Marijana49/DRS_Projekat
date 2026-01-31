@@ -21,7 +21,11 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
     const handleQuestionChange = (index: number, event: ChangeEvent<HTMLInputElement>) => {
         let data = [...questions]; 
         let element = event.target.name;
-        data[index][element] = event.target.value;
+        if(element === "points") {
+            data[index][element] = parseInt(event.target.value) || 0;
+        } else {
+            data[index][element] = event.target.value;
+        }
         setQuestions(data);
     }
 
@@ -104,7 +108,15 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
         if(!answer.success){
             setError(answer.message);
         }else{
-            setError("Quiz created");
+            setError("Quiz created successfully");
+            setQuizName("");
+            setDuration("");
+            setQuestions([{
+                question: '',
+                answers: [{answer: ''}],
+                correctAnswer: '', 
+                points: 0
+            }]);
         }
 
     };

@@ -96,7 +96,8 @@ export function QuizList({quizAPI}: QuizListProps){
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
-            }
+            },
+            credentials: "include"
         });
 
         setPendingQuizes(prev => prev.filter(q => q.id !== id));
@@ -109,7 +110,8 @@ export function QuizList({quizAPI}: QuizListProps){
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ reason: "Rejected by admin" })
+            body: JSON.stringify({ reason: "Rejected by admin" }),
+            credentials: "include"
         });
 
         setPendingQuizes(prev => prev.filter(q => q.id !== id));

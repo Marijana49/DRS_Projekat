@@ -17,8 +17,10 @@ export const QuizAPI : IQuizAPIService = {
     Promise<QuizResponse>{
         try{
             const answer = await axios.post<QuizResponse>(`${API_URL}/quiz`, 
-                {quizName: quizName, questions: questions, answers: answers, correctAnswers: correctAnswers, questionPoints: points, duration: duration}, 
-                {headers : {Authorization : `Bearer ${token}`}});
+                {quizName: quizName, questions: questions, answers: answers, correctAnswers: correctAnswers, points: points, duration: duration}, 
+                {headers : {Authorization : `Bearer ${token}`,
+                 "Content-Type": "application/json"},
+                 withCredentials: true});
             return(answer.data);
             }
         catch(error){
@@ -35,8 +37,10 @@ export const QuizAPI : IQuizAPIService = {
     async startQuiz(token: string, id: number): Promise<QuizDTO>{
         try{
             const answer = await axios.post<QuizDTO>(`${API_URL}/quiz/${id}/start`, 
-                {quiz_id: id},
-                {headers : {Authorization: `Bearer ${token}`}});
+                {},
+                {headers : {Authorization: `Bearer ${token}`,
+                 "Content-Type": "application/json"},
+                 withCredentials: true});
             return answer.data;
         }catch{
             return{
@@ -54,8 +58,10 @@ export const QuizAPI : IQuizAPIService = {
     async submitQuiz(token: string, id: number, answers: string[], duration: number): Promise<QuizResponse>{
         try{
             const answer = await axios.post<QuizResponse>(`${API_URL}/quiz/${id}/submit`, 
-                {answers: answers, spentTime: duration}, 
-                {headers: {Authorization: `Bearer ${token}`}});
+                {answers: answers, duration: duration}, 
+                {headers: {Authorization: `Bearer ${token}`,
+                 "Content-Type": "application/json"},
+                 withCredentials: true});
             return answer.data;
         }catch{
             return{
@@ -67,7 +73,8 @@ export const QuizAPI : IQuizAPIService = {
     async getAllQuizes(token: string): Promise<QuizPreview[]>{
         try{
             const answer = await axios.get<QuizPreview[]>(`${API_URL}/quiz`, 
-                {headers: {Authorization: `Bearer ${token}`}});
+                {headers: {Authorization: `Bearer ${token}`},
+                 withCredentials: true});
             
             return answer.data;
         }catch{
