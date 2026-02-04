@@ -5,11 +5,14 @@ import { ProcitajPoKljucu } from "../../helpers/local_storage";
 import { UserInfo } from "../../components/user/UserInfo/UserInfo";
 import { userAPI } from "../../api/user/UserAPIService";
 import ToolBar from "../../components/toolbar/ToolBar";
+import { ToastContainer } from "react-toastify";
+import { parseRole } from "../../helpers/parseRole";
 
 export default function UserDashboard() {
-    const {isAuthenticated, logout } = useAuth();
+    const {isAuthenticated, logout, user} = useAuth();
     const navigate = useNavigate();
-
+    const isAdmin = parseRole(user?.role) === "ADMINISTRATOR";
+    
     useEffect(() => {
         const token = ProcitajPoKljucu("authToken");
         
@@ -24,6 +27,7 @@ export default function UserDashboard() {
             <div className="max-h-10">
                 <ToolBar/>
             </div>
+            {isAdmin && <ToastContainer/>}
             <UserInfo userAPI={userAPI}/>
             
         </main>

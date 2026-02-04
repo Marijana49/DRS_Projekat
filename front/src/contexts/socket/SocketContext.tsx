@@ -1,6 +1,8 @@
 import { createContext, useEffect, useState, type ReactNode } from "react";
 import type { SocketContextType } from "../../types/socket/SocketContext";
 import { io, Socket } from "socket.io-client";
+import type { QuizToAccept } from "../../types/Quiz/QuizApproval";
+import { toast } from "react-toastify";
  
 export const SocketContext = createContext<SocketContextType | undefined>(undefined);
  
@@ -17,6 +19,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [quizes, setQuizes] = useState<QuizToAccept[]>([]);
  
   useEffect(() => {
     const newSocket = createSocketConnection();
@@ -24,7 +27,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
     // Handles the socket connection event
     function handleConnect() {
       console.log("Socket connected", newSocket.id);
- 
+      setQuizes([]);
       setSocket(newSocket);
       setIsConnected(true);
       setIsLoading(false);
@@ -44,11 +47,18 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
  
       setIsLoading(false);
     }
+
+    function handleQuiz(data: QuizToAccept){
+      toast("New quiz for approval")
+      setQuizes(prev => [...prev, data]);
+      setIsLoading(false);
+    }
  
     newSocket.on("connect", handleConnect);
     newSocket.on("disconnect", handleDisconnect);
     newSocket.on("connect_error", handleConnectError);
- 
+    newSocket.on("new_quiz", handleQuiz);
+    
     // Connects to the server
     newSocket.connect();
  
@@ -57,14 +67,21 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
       newSocket.off("connect", handleConnect);
       newSocket.off("disconnect", handleDisconnect);
       newSocket.off("connect_error", handleConnectError);
+      newSocket.off("new_quiz", handleQuiz)
       newSocket.disconnect();
     };
   }, []);
+
+  const removeQuiz = (id: number) => {
+      setQuizes(prev => prev.filter(quiz => quiz.quizID !== id));
+    };
   
   const value : SocketContextType = {
     socket,
     isConnected,
-    isLoading
+    isLoading,
+    quizes,
+    removeQuiz
   };
 
   return (

@@ -34,13 +34,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if(requiredRole && parsedRole !== requiredRole) {
         return (
             <main>
-                <div>
-                    <h2>You do not have authorization</h2>
-                    <p>
-                        You need to be {" "}
-                        <span>{requiredRole}</span> to access this page. Your role is {parsedRole}
+                <div className="text-center py-5">
+                    <h2 className="font-extrabold text-4xl text-indigo-700">You don't have premisson</h2>
+                    <p className="text-lg mt-2 mb-2">
+                        You need to be a{" "}
+                        <span className="font-bold text-blue-500">{requiredRole}</span> to access this page.   
                     </p>
-                    <button onClick={handleLogout}>
+                    <p>
+                        Your role is <span className="font-bold text-rose-700">{parsedRole}</span>
+                    </p>
+                    <button 
+                    className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500 mt-4"
+                    onClick={handleLogout}>
                         Logout
                     </button>
                 </div>

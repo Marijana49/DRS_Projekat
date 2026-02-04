@@ -4,34 +4,32 @@ import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useNavigate } from "react-router-dom";
 import type { QuizToAccept } from "../../types/Quiz/QuizApproval";
+import 'react-toastify/dist/ReactToastify.css';
 
 interface QuizAcceptProps{
     quizAPI: IQuizAPIService
 }
 
 
-
 export default function QuizAccept({quizAPI} : QuizAcceptProps){
-    const {socket} = useSocket();
-    const [Quizes, setQuizes] = useState<QuizToAccept[]>([]);
+    const {socket, quizes, removeQuiz} = useSocket();
+    const [newQuizes, setQuizes] = useState<QuizToAccept[]>(quizes);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const {token} = useAuth();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        socket?.on("new_quiz", (data: QuizToAccept) => {
-            console.log(data);
-            setQuizes(prev => [...prev, data])
-        })
-    }, [socket])
+    useEffect(()=>{
+        setQuizes(quizes);
+    }, [socket]);
+
 
     if(!token)return;
 
     const handleAccept = async (id: number) => {
         const answer = await quizAPI.approveQuiz(token, id);
-        
         setError(answer.message);
+        removeQuiz(id);
         setQuizes(prev => prev.filter(quiz => quiz.quizID !== id));
     };
 
@@ -63,8 +61,8 @@ export default function QuizAccept({quizAPI} : QuizAcceptProps){
                     </div>
                     <div>
                         {error && <p className="text-2xl font-bold text-purple-600">{error}</p>}
-                        {Quizes.length > 0 ? (Quizes.map((quiz) =>(
-                        <div className="text-center border-2 border-purple-800 rounded px-12 py-7 shadow-lg shadow-zinc-900 mt-2 mb-2">
+                        {newQuizes.length > 0 ? (newQuizes.map((quiz) =>(
+                        <div key={quiz.quizID.toString()} className="text-center border-2 border-purple-800 rounded px-12 py-7 shadow-lg shadow-zinc-900 mt-2 mb-2">
                             <h1 className="mb-2 text-xl font-bold text-blue-400">{quiz.quizName}</h1>
                             <p className="text-left">ID: {quiz.quizID}</p>
                             <p className="text-left">Author: {quiz.quizAuthor}</p>
