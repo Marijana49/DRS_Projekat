@@ -14,4 +14,6 @@ export interface IQuizAPIService {
     getAllQuizes(token: string): Promise<QuizPreview[]>;
     startQuiz(token: string, id: number): Promise<QuizDTO>;
     submitQuiz(token: string, id: number, answers: string[], duration: number): Promise<QuizResponse>;
+    approveQuiz(token: string, id:number): Promise<QuizResponse>;
+    rejectQuiz(toke: string, id:number, message:string): Promise<QuizResponse>;
 }

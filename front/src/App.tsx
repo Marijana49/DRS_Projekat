@@ -17,6 +17,7 @@ import QuizListPage from "./pages/quiz/quizListPage";
 import { QuizAPI } from "./api/quiz/QuizAPIService";
 import QuizPage from "./pages/quiz/quizPage";
 import CreateQuizPage from "./pages/quiz/createQuizPage";
+import QuizAccept from "./components/socket/QuizAccept";
 function App() {
   return (
     <Routes>
@@ -50,7 +51,11 @@ function App() {
             <AdminDashboard userAPI={userAPI} />
           </ProtectedRoute>
         } />
-
+      <Route path="/admin/quiz" element={
+        <ProtectedRoute requiredRole="ADMINISTRATOR">
+          <QuizAccept quizAPI={QuizAPI}/>
+        </ProtectedRoute>
+      }/>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>

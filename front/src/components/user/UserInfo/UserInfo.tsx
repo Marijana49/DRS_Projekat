@@ -42,6 +42,9 @@ export function UserInfo({userAPI} : UserInfoProps){
     const handleChangeImage = () => {
         navigate("/profile/picture")
     }
+    const handleQuizApproval = () => {
+        navigate("/admin/quiz")
+    }
 
     return(        
         <div className="container px-4 mx-auto min-h-screen min-w-screen">
@@ -81,7 +84,10 @@ export function UserInfo({userAPI} : UserInfoProps){
                     <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleLogout}> Logout </button>
                     <button className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleEdit}> Edit </button>
                     {parseRole(user.role) == "ADMINISTRATOR" ? (
-                        <button onClick={handelSwitchPage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500" >User List</button>
+                    <div>
+                        <button onClick={handelSwitchPage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500 mr-2" >User List</button>
+                        <button onClick={handleQuizApproval} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500 ml-2" >Quiz Approval</button>
+                    </div>
                     ) : (
                         <div></div>
                     )

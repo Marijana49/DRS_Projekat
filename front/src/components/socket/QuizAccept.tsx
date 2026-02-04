@@ -1,0 +1,97 @@
+import { useEffect, useState, type ChangeEvent } from "react";
+import { useSocket } from "../../hooks/useSocketHook";
+import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
+import { useAuth } from "../../hooks/useAuthHook";
+import { useNavigate } from "react-router-dom";
+import type { QuizToAccept } from "../../types/Quiz/QuizApproval";
+
+interface QuizAcceptProps{
+    quizAPI: IQuizAPIService
+}
+
+
+
+export default function QuizAccept({quizAPI} : QuizAcceptProps){
+    const {socket} = useSocket();
+    const [Quizes, setQuizes] = useState<QuizToAccept[]>([]);
+    const [error, setError] = useState("");
+    const [message, setMessage] = useState("");
+    const {token} = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        socket?.on("new_quiz", (data: QuizToAccept) => {
+            console.log(data);
+            setQuizes(prev => [...prev, data])
+        })
+    }, [socket])
+
+    if(!token)return;
+
+    const handleAccept = async (id: number) => {
+        const answer = await quizAPI.approveQuiz(token, id);
+        
+        setError(answer.message);
+        setQuizes(prev => prev.filter(quiz => quiz.quizID !== id));
+    };
+
+    const handleReject = async (id: number) => {
+        if(message == ""){
+            setError("Reject reason cannot be empty")
+            return;
+        }
+        const answer = await quizAPI.rejectQuiz(token, id, message);
+        
+        setError(answer.message);
+        setQuizes(prev => prev.filter(quiz => quiz.quizID !== id));
+    };
+
+    const handleChange = (e:ChangeEvent<HTMLInputElement>) =>{
+        setMessage(e.target.value);
+    }
+    const handleBack = () => {
+        navigate("/profile");
+    }
+    
+    return(
+        <div className="flex items-center justify-center py-5 min-h-screen">
+                <div className="text-center">
+                    <div className="mb-4">
+                        <h2 className="text-indigo-800 font-bold text-3xl text-shadow-2xs text-shadow-inc-900">
+                            Quizes for Approval
+                        </h2> 
+                    </div>
+                    <div>
+                        {error && <p className="text-2xl font-bold text-purple-600">{error}</p>}
+                        {Quizes.length > 0 ? (Quizes.map((quiz) =>(
+                        <div className="text-center border-2 border-purple-800 rounded px-12 py-7 shadow-lg shadow-zinc-900 mt-2 mb-2">
+                            <h1 className="mb-2 text-xl font-bold text-blue-400">{quiz.quizName}</h1>
+                            <p className="text-left">ID: {quiz.quizID}</p>
+                            <p className="text-left">Author: {quiz.quizAuthor}</p>
+                            <p className="text-left">Duration: {quiz.quizDuration}</p>
+                            <div className="mb-6">
+                                <label className="block text-zinc-600 text-left">Reject Reason</label>
+                                <input 
+                                    type="text"
+                                    value={message}
+                                    className="border-2 rounded border-zinc-500"
+                                    onChange={e => handleChange(e)}
+                                />
+                            </div>
+                            <button 
+                            className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500 mr-2 mt-4"
+                            onClick={() => handleAccept(quiz.quizID)} >Accept</button>
+                            <button
+                            className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500 ml-2 mt-4" 
+                            onClick={() => handleReject(quiz.quizID)} >Reject</button>
+                        </div>
+                        ))
+                        ):(
+                        <div className="font-extrabold text-3xl py-4 text-zinc-600">No quizes</div>
+                        )}
+                    </div>
+                    <button className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500" onClick={handleBack}> Back </button>
+                </div>
+        </div>
+    )
+}

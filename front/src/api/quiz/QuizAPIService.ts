@@ -81,5 +81,33 @@ export const QuizAPI : IQuizAPIService = {
         }catch{
             return [];
         }
+    },
+    async rejectQuiz(token: string, id: number, message: string): Promise<QuizResponse> {
+        try{
+            const answer = await axios.put<QuizResponse>(`${API_URL}/admin/quiz/${id}/reject`,
+                {reason: message},
+                {headers: {Authorization: `Bearer ${token}`}});
+            return answer.data;
+        }catch{
+            return{
+                success: false,
+                message: "ERROR"
+            }
+        }        
+
+    },
+
+    async approveQuiz(token: string, id: number): Promise<QuizResponse>{
+        try{
+            const answer = await axios.put<QuizResponse>(`${API_URL}/admin/quiz/${id}/approve`,
+                {},
+                {headers: {Authorization: `Bearer ${token}`}});
+            return answer.data;
+        }catch{
+            return{
+                success: false,
+                message: "ERROR"
+            }
+        }
     }
 }

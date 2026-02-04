@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, get_jwt
 from flask_cors import CORS
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit, send
 from flask import make_response
 from threading import Thread
 import time
@@ -66,7 +66,8 @@ def quizzes():
     socketio.emit("new_quiz", {
         "quizId": quiz.id,
         "quizName": quiz.quiz_name,
-        "author": quiz.author
+        "quizAuthor": quiz.author,
+        "quizDuration": quiz.duration
     })
 
     return jsonify({"message": "Quiz sent for approval"}), 201
@@ -75,8 +76,10 @@ def quizzes():
 @jwt_required()
 def approve_quiz(quiz_id):
     claims = get_jwt()
-    if claims.get("role") != "ADMINISTRATOR":
+    if claims.get("role") != 3:
         return jsonify({"message": "Unauthorized"}), 403
+
+    # return jsonify({"message": "Quiz approved", "success": True}), 200
 
     quiz = Quiz.query.get(quiz_id)
     if not quiz:
@@ -99,8 +102,10 @@ def approve_quiz(quiz_id):
 @jwt_required()
 def reject_quiz(quiz_id):
     claims = get_jwt()
-    if claims.get("role") != "ADMINISTRATOR":
+    if claims.get("role") != 3:
         return jsonify({"message": "Unauthorized"}), 403
+
+    # return jsonify({"message": "Quiz rejected", "success": True}), 200
 
     data = request.json
     quiz = Quiz.query.get(quiz_id)
