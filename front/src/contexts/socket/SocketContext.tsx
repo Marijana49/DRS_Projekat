@@ -27,7 +27,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
     // Handles the socket connection event
     function handleConnect() {
       console.log("Socket connected", newSocket.id);
-      setQuizes([]);
+      //setQuizes([]);
       setSocket(newSocket);
       setIsConnected(true);
       setIsLoading(false);
@@ -73,7 +73,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
   }, []);
 
   const removeQuiz = (id: number) => {
-      setQuizes(prev => prev.filter(quiz => quiz.quizID !== id));
+      setQuizes(prev => prev.filter(quiz => quiz.quizId !== id));
     };
   
   const value : SocketContextType = {

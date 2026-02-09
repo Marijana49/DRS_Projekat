@@ -21,8 +21,16 @@ export default function QuizAccept({quizAPI} : QuizAcceptProps){
 
     useEffect(()=>{
         setQuizes(quizes);
-    }, [socket]);
+    }, [quizes]);
 
+    useEffect(()=>{
+        const load = async () => {
+            if(!token) return;
+            const pending = await quizAPI.getPendingQuizes(token);
+            setQuizes(pending);
+        };
+        load();
+    }, []);
 
     if(!token)return;
 
@@ -30,7 +38,7 @@ export default function QuizAccept({quizAPI} : QuizAcceptProps){
         const answer = await quizAPI.approveQuiz(token, id);
         setError(answer.message);
         removeQuiz(id);
-        setQuizes(prev => prev.filter(quiz => quiz.quizID !== id));
+        setQuizes(prev => prev.filter(quiz => quiz.quizId !== id));
     };
 
     const handleReject = async (id: number) => {
@@ -41,7 +49,7 @@ export default function QuizAccept({quizAPI} : QuizAcceptProps){
         const answer = await quizAPI.rejectQuiz(token, id, message);
         
         setError(answer.message);
-        setQuizes(prev => prev.filter(quiz => quiz.quizID !== id));
+        setQuizes(prev => prev.filter(quiz => quiz.quizId !== id));
     };
 
     const handleChange = (e:ChangeEvent<HTMLInputElement>) =>{
@@ -62,9 +70,9 @@ export default function QuizAccept({quizAPI} : QuizAcceptProps){
                     <div>
                         {error && <p className="text-2xl font-bold text-purple-600">{error}</p>}
                         {newQuizes.length > 0 ? (newQuizes.map((quiz) =>(
-                        <div key={quiz.quizID.toString()} className="text-center border-2 border-purple-800 rounded px-12 py-7 shadow-lg shadow-zinc-900 mt-2 mb-2">
+                        <div key={quiz.quizId.toString()} className="text-center border-2 border-purple-800 rounded px-12 py-7 shadow-lg shadow-zinc-900 mt-2 mb-2">
                             <h1 className="mb-2 text-xl font-bold text-blue-400">{quiz.quizName}</h1>
-                            <p className="text-left">ID: {quiz.quizID}</p>
+                            <p className="text-left">ID: {quiz.quizId}</p>
                             <p className="text-left">Author: {quiz.quizAuthor}</p>
                             <p className="text-left">Duration: {quiz.quizDuration}</p>
                             <div className="mb-6">
@@ -78,10 +86,10 @@ export default function QuizAccept({quizAPI} : QuizAcceptProps){
                             </div>
                             <button 
                             className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500 mr-2 mt-4"
-                            onClick={() => handleAccept(quiz.quizID)} >Accept</button>
+                            onClick={() => handleAccept(quiz.quizId)} >Accept</button>
                             <button
                             className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500 ml-2 mt-4" 
-                            onClick={() => handleReject(quiz.quizID)} >Reject</button>
+                            onClick={() => handleReject(quiz.quizId)} >Reject</button>
                         </div>
                         ))
                         ):(

@@ -3,6 +3,7 @@ import type { QuizResponse } from "../../types/Quiz/QuizResponse";
 import type { IQuizAPIService } from "./IQuizAPIService";
 import type { QuizPreview } from "../../types/Quiz/QuizPreview";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
+import type { QuizToAccept } from "../../types/Quiz/QuizApproval";
 
 const API_URL:string = import.meta.env.VITE_QUIZ_API_URL;
 console.log(API_URL);
@@ -35,6 +36,20 @@ export const QuizAPI : IQuizAPIService = {
             };
         }
     },
+    async getPendingQuizes(token: string): Promise<QuizToAccept[]> {
+        try{
+            const answer = await axios.get<QuizToAccept[]>(
+                `${API_URL}/admin/quizes/pending`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true
+                }
+            );
+            return answer.data;
+        }catch{
+            return [];
+        }
+    },
     async startQuiz(token: string, id: number): Promise<QuizDTO>{
         try{
             const answer = await axios.post<QuizDTO>(`${API_URL}/quiz/${id}/start`, 
@@ -59,7 +74,7 @@ export const QuizAPI : IQuizAPIService = {
     async submitQuiz(token: string, id: number, answers: string[], duration: number): Promise<QuizResponse>{
         try{
             const answer = await axios.post<QuizResponse>(`${API_URL}/quiz/${id}/submit`, 
-                {answers: answers, duration: duration}, 
+                {answers: answers, spentTime: duration}, 
                 {headers: {Authorization: `Bearer ${token}`,
                  "Content-Type": "application/json"},
                  withCredentials: true});

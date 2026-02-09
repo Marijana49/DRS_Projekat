@@ -80,7 +80,7 @@ def approve_quiz(quiz_id):
     if claims.get("role") != 3:
         return jsonify({"message": "Unauthorized"}), 403
 
-    # return jsonify({"message": "Quiz approved", "success": True}), 200
+    #return jsonify({"message": "Quiz approved", "success": True}), 200
 
     quiz = Quiz.query.get(quiz_id)
     if not quiz:
@@ -118,6 +118,27 @@ def reject_quiz(quiz_id):
     db.session.commit()
 
     return jsonify({"message": "Quiz rejected"})
+
+
+@app.route("/admin/quizes/pending", methods=["GET"])
+@jwt_required()
+def get_pending_quizes():
+    claims = get_jwt()
+    if claims.get("role") != 3:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    quizzes = Quiz.query.filter_by(status=QuizStatus.Pending.value).all()
+
+    return jsonify([
+        {
+            "quizId": q.id,
+            "quizName": q.quiz_name,
+            "quizAuthor": q.author,
+            "quizDuration": q.duration
+        }
+        for q in quizzes
+    ])
+
 
 @app.route("/quiz/<int:quiz_id>/start", methods=["POST"])
 @jwt_required()

@@ -1,5 +1,5 @@
 export type QuizToAccept = {
-    quizID: number;
+    quizId: number;
     quizName: string;
     quizAuthor: string;
     quizDuration: string;
