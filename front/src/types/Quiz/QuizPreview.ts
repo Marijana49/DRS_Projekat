@@ -1,6 +1,6 @@
 export type QuizPreview = {
-    id: number;
+    quizId: number;
     quizName: string;
-    duration: number;
-    author: string;
+    quizDuration: number;
+    quizAuthor: string;
 }

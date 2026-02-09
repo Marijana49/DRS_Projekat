@@ -1,12 +1,12 @@
 export interface ModeratorQuiz {
-    id: number;
+    quizId: number;
     quizName: string; 
     questions: string[]; 
     answers: string[][];
     points: number[]; 
     correctAnswers:string[];
-    duration: number; 
-    author: string;
-    status: "Pending" | "Approved" | "Rejected";
+    quizDuration: number; 
+    quizAuthor: string;
+    status: number; // 1-pending, 2-approved, 3-rejected
     rejectReason?: string | null;
 }
