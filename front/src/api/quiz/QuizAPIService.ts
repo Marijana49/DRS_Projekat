@@ -4,7 +4,7 @@ import type { IQuizAPIService } from "./IQuizAPIService";
 import type { QuizPreview } from "../../types/Quiz/QuizPreview";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
 
-const API_URL:string = import.meta.env.VITE_QUIZ_URL;
+const API_URL:string = import.meta.env.VITE_QUIZ_API_URL;
 console.log(API_URL);
 
 export const QuizAPI : IQuizAPIService = {

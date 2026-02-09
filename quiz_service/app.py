@@ -10,6 +10,7 @@ import requests
 from Database.InitializationDB import db
 from Domain.models.Quiz import Quiz
 from Domain.models.QuizResults import QuizResult
+from Domain.enums.QuizStatus import QuizStatus
 
 app = Flask(__name__)
 
@@ -38,7 +39,7 @@ with app.app_context():
 @jwt_required(optional=True)
 def quizzes():
     if request.method == "GET":
-        quizzes = Quiz.query.filter_by(status="APPROVED").all()
+        quizzes = Quiz.query.filter_by(status=QuizStatus.Approved.value).all()
         return jsonify([
             {"id": q.id, "quizName": q.quiz_name, "duration": q.duration, "author": q.author}
             for q in quizzes
@@ -57,7 +58,7 @@ def quizzes():
         correct_answers=data["correctAnswers"],
         duration=data["duration"],
         author=claims["email"],
-        status="PENDING"
+        status=QuizStatus.Pending.value
     )
 
     db.session.add(quiz)
@@ -85,7 +86,7 @@ def approve_quiz(quiz_id):
     if not quiz:
         return jsonify({"message": "Quiz not found"}), 404
 
-    quiz.status = "APPROVED"
+    quiz.status = QuizStatus.Approved.value
     quiz.reject_reason = None
     db.session.commit()
 
@@ -112,7 +113,7 @@ def reject_quiz(quiz_id):
     if not quiz:
         return jsonify({"message": "Quiz not found"}), 404
 
-    quiz.status = "REJECTED"
+    quiz.status = QuizStatus.Rejected.value
     quiz.reject_reason = data.get("reason")
     db.session.commit()
 
@@ -122,7 +123,7 @@ def reject_quiz(quiz_id):
 @jwt_required()
 def start_quiz(quiz_id):
     quiz = Quiz.query.get(quiz_id)
-    if not quiz or quiz.status != "APPROVED":
+    if not quiz or quiz.status != QuizStatus.Approved.value:
         return jsonify({"message": "Quiz not available"}), 403
 
     return jsonify({

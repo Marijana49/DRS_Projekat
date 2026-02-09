@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
  
 export const SocketContext = createContext<SocketContextType | undefined>(undefined);
  
-const ioServerUrl = import.meta.env.VITE_QUIZ_URL;
+const ioServerUrl = import.meta.env.VITE_QUIZ_API_URL;
  
 // Create socket connection without auto connecting to the server
 function createSocketConnection() {
