@@ -140,6 +140,71 @@ def get_pending_quizes():
     ])
 
 
+@app.route("/moderator/quizes", methods=["GET"])
+@jwt_required()
+def get_moderator_quizes():
+    claims = get_jwt()
+    if claims.get("role") != 2:   
+        return jsonify({"message": "Unauthorized"}), 403
+
+    email = claims.get("email")
+
+    quizzes = Quiz.query.filter_by(author=email).all()
+
+    return jsonify([
+        {
+            "id": q.id,
+            "quizName": q.quiz_name,
+            "questions": q.questions,
+            "answers": q.answers,
+            "points": q.points,
+            "correctAnswers": q.correct_answers,
+            "duration": q.duration,
+            "author": q.author,
+            "status": q.status,
+            "rejectReason": q.reject_reason
+        }
+        for q in quizzes
+    ])
+
+@app.route("/moderator/quiz/<int:quiz_id>", methods=["PUT"])
+@jwt_required()
+def update_quiz(quiz_id):
+    claims = get_jwt()
+    if claims.get("role") != 2:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    quiz = Quiz.query.get(quiz_id)
+    if not quiz:
+        return jsonify({"message": "Quiz not found"}), 404
+
+    if quiz.author != claims.get("email"):
+        return jsonify({"message": "Forbidden"}), 403
+
+    data = request.json
+
+    quiz.quiz_name = data["quizName"]
+    quiz.questions = data["questions"]
+    quiz.answers = data["answers"]
+    quiz.points = data["points"]
+    quiz.correct_answers = data["correctAnswers"]
+    quiz.duration = data["duration"]
+
+    quiz.status = QuizStatus.Pending.value
+    quiz.reject_reason = None
+
+    db.session.commit()
+
+    socketio.emit("new_quiz", {
+        "quizId": quiz.id,
+        "quizName": quiz.quiz_name,
+        "quizAuthor": quiz.author,
+        "quizDuration": quiz.duration
+    })
+
+    return jsonify({"message": "Quiz updated and sent for approval"})
+
+
 @app.route("/quiz/<int:quiz_id>/start", methods=["POST"])
 @jwt_required()
 def start_quiz(quiz_id):

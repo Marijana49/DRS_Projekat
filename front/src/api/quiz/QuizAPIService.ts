@@ -4,6 +4,7 @@ import type { IQuizAPIService } from "./IQuizAPIService";
 import type { QuizPreview } from "../../types/Quiz/QuizPreview";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
 import type { QuizToAccept } from "../../types/Quiz/QuizApproval";
+import type { ModeratorQuiz } from "../../types/Quiz/ModeratorQuiz";
 
 const API_URL:string = import.meta.env.VITE_QUIZ_API_URL;
 console.log(API_URL);
@@ -49,6 +50,26 @@ export const QuizAPI : IQuizAPIService = {
         }catch{
             return [];
         }
+    },
+    async getModeratorQuizes(token: string): Promise<ModeratorQuiz[]> {
+        try{
+            const answer = await axios.get<ModeratorQuiz[]>(
+                `${API_URL}/moderator/quizes`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true
+                }
+            );
+            return answer.data;
+        }catch{
+            return [];
+        }
+    },
+    async updateQuiz(token: string, id:number, quiz: QuizDTO){
+        const res = await axios.put(`${API_URL}/moderator/quiz/${id}`, quiz, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return res.data;
     },
     async startQuiz(token: string, id: number): Promise<QuizDTO>{
         try{

@@ -3,11 +3,12 @@ import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useNavigate } from "react-router-dom";
 import type { QuizPreview } from "../../types/Quiz/QuizPreview";
+import type { ModeratorQuiz } from "../../types/Quiz/ModeratorQuiz";
 import { SacuvajPoKljucu } from "../../helpers/local_storage";
 import { io, Socket } from "socket.io-client";
 
 interface QuizListProps {
-    quizAPI: IQuizAPIService
+    quizAPI: IQuizAPIService;
 }
 
 interface PendingQuiz {
@@ -19,52 +20,57 @@ interface PendingQuiz {
 
 let socket: Socket | null = null;
 
-export function QuizList({quizAPI}: QuizListProps){
-    const {token, user} = useAuth();
-    const [quizes, setQuizes] = useState<QuizPreview[]>([]);
+export function QuizList({ quizAPI }: QuizListProps) {
+    const { token, user } = useAuth();
+    const [quizes, setQuizes] = useState<QuizPreview[] | ModeratorQuiz[]>([]);
     const [pendingQuizes, setPendingQuizes] = useState<PendingQuiz[]>([]);
     const navigate = useNavigate();
 
     const isAdmin = user?.role === "ADMINISTRATOR";
     const isPlayer = user?.role === "PLAYER";
+    const isModerator = user?.role === "MODERATOR";
 
-    const handlePlay = async (id: number) => {
+    const handlePlay = (id: number) => {
         SacuvajPoKljucu("quizId", id.toString());
         navigate("/quizes/play");
-    }
+    };
+
+    const handleEdit = (id: number) => {
+        navigate(`/quizes/edit/${id}`);
+    };
 
     useEffect(() => {
-        if(isAdmin) return;
+        if (isAdmin) return;
 
-        (async ()=>{
-            const data = await quizAPI.getAllQuizes(token ?? "");
-            setQuizes(data);
+        (async () => {
+            if (isPlayer) {
+                const data = await quizAPI.getAllQuizes(token ?? "");
+                setQuizes(data);
+            } else if (isModerator) {
+                const data = await quizAPI.getModeratorQuizes(token ?? "");
+                setQuizes(data);
+            }
         })();
-    }, [token, quizAPI, isAdmin]);
+    }, [token, quizAPI, isAdmin, isPlayer, isModerator]);
 
     useEffect(() => {
-        if(!isAdmin) return;
+        if (!isAdmin) return;
 
         socket = io("http://localhost:5000", {
             transports: ["websocket"],
             withCredentials: true
         });
 
-        socket.on("connect", () => {
-            console.log("Admin Socket.IO connected");
-        });
+        socket.on("connect", () => console.log("Admin Socket.IO connected"));
 
         socket.on("new_quiz", (data: PendingQuiz) => {
-            console.log("New quiz received:", data);
             setPendingQuizes(prev => [...prev, data]);
         });
 
-        socket.on("disconnect", () => {
-            console.log("Socket disconnected");
-        });
+        socket.on("disconnect", () => console.log("Socket disconnected"));
 
         return () => {
-            if(socket){
+            if (socket) {
                 socket.disconnect();
                 socket = null;
             }
@@ -72,7 +78,7 @@ export function QuizList({quizAPI}: QuizListProps){
     }, [isAdmin]);
 
     useEffect(() => {
-        if(!isPlayer) return;
+        if (!isPlayer) return;
 
         const playerSocket = io("http://localhost:5000", {
             transports: ["websocket"],
@@ -80,44 +86,14 @@ export function QuizList({quizAPI}: QuizListProps){
         });
 
         playerSocket.on("quiz_approved", (quiz: QuizPreview) => {
-            console.log("Approved quiz arrived:", quiz);
             setQuizes(prev => [...prev, quiz]);
         });
 
-        return () => {
-            playerSocket.disconnect();
-        };
+        return () => {playerSocket.disconnect();};
     }, [isPlayer]);
 
 
-    const approveQuiz = async (id: number) => {
-        await fetch(`http://localhost:5000/admin/quiz/${id}/approve`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            credentials: "include"
-        });
-
-        setPendingQuizes(prev => prev.filter(q => q.id !== id));
-    }
-
-    const rejectQuiz = async (id: number) => {
-        await fetch(`http://localhost:5000/admin/quiz/${id}/reject`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ reason: "Rejected by admin" }),
-            credentials: "include"
-        });
-
-        setPendingQuizes(prev => prev.filter(q => q.id !== id));
-    }
-
-    return(
+    return (
         <div className="container px-4 mx-auto min-h-screen min-w-screen">
             <div className="max-w-5xl mx-auto">
                 {isAdmin && (
@@ -138,14 +114,14 @@ export function QuizList({quizAPI}: QuizListProps){
 
                                         <div className="flex gap-4 mt-3">
                                             <button
-                                                onClick={() => approveQuiz(q.id)}
+                                                onClick={async () => await quizAPI.approveQuiz(token ?? "", q.id)}
                                                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800 transition"
                                             >
                                                 Approve
                                             </button>
 
                                             <button
-                                                onClick={() => rejectQuiz(q.id)}
+                                                onClick={async () => await quizAPI.rejectQuiz(token ?? "", q.id, "Rejected by admin")}
                                                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-800 transition"
                                             >
                                                 Reject
@@ -153,8 +129,7 @@ export function QuizList({quizAPI}: QuizListProps){
                                         </div>
                                     </div>
                                 ))
-                            ):(
-
+                            ) : (
                                 <div className="text-center font-bold text-zinc-500">
                                     No pending quizes
                                 </div>
@@ -171,31 +146,42 @@ export function QuizList({quizAPI}: QuizListProps){
 
                         <div className="grid grid-cols-2 gap-5 text-center">
                             {quizes.length > 0 ? (quizes.map(quiz => (
-
-                                <button 
-                                    key={quiz.id}
-                                    onClick = {() => handlePlay(quiz.id)} 
-                                    className="p-0.5 bg-blue-900 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700"
-                                >
-                                    <div className="bg-indigo-200/90">
+                                <div key={quiz.id} className="p-0.5 bg-blue-900 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700">
+                                    <div className="bg-indigo-200/90 p-2">
                                         <h3 className="text-2xl font-bold text-indigo-900/75">{quiz.quizName}</h3>
                                         <div className="inline-block mr-4">
                                             Duration: {quiz.duration}min
                                         </div>
                                         <div className="inline-block">by {quiz.author}</div>
+
+                                        {isModerator && 'status' in quiz && quiz.status === "Rejected" && (
+                                            <button
+                                                onClick={() => handleEdit(quiz.id)}
+                                                className="mt-2 ml-2 py-1 px-3 bg-yellow-500 text-white rounded hover:bg-yellow-700 transition"
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
+
+                                        {isPlayer && (
+                                            <button
+                                                onClick={() => handlePlay(quiz.id)}
+                                                className="mt-2 ml-2 py-1 px-3 bg-green-600 text-white rounded hover:bg-green-800 transition"
+                                            >
+                                                Play
+                                            </button>
+                                        )}
                                     </div>
-                                </button>
-                            )) 
-                            ):( 
-                            <div className="text-gray-500 font-extrabold justify-center text-2xl text-center col-span-2 py-10">
-                                Sorry, no quizes are currently available
-                            </div>
+                                </div>
+                            ))) : (
+                                <div className="text-gray-500 font-extrabold justify-center text-2xl text-center col-span-2 py-10">
+                                    Sorry, no quizes are currently available
+                                </div>
                             )}
                         </div>
                     </>
                 )}
-
             </div>
         </div>
-    )
+    );
 }
