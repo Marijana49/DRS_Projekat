@@ -64,7 +64,7 @@ def quizzes():
        return jsonify(result)
 
     if not claims or claims.get("role") != 2:
-        return jsonify({"message": "Unauthorized"}), 403
+        return jsonify({"message": "Unauthorized", "success": False}), 403
     
 
     data = request.json
@@ -94,7 +94,7 @@ def quizzes():
         "quizStatus": quiz.status
     })
 
-    return jsonify({"message": "Quiz sent for approval"}), 201
+    return jsonify({"message": "Quiz sent for approval", "success": True, "data": quiz.id}), 201
 
 @app.route("/admin/quiz/<int:quiz_id>/approve", methods=["PUT"])
 @jwt_required()
@@ -113,6 +113,7 @@ def approve_quiz(quiz_id):
     quiz.reject_reason = None
     db.session.commit()
 
+<<<<<<< HEAD
     cache.delete(f"quizzes:role:2")
     cache.delete(f"quizzes:role:3")
     cache.delete(f"quizzes:role:None")
@@ -124,6 +125,9 @@ def approve_quiz(quiz_id):
         "author": quiz.author
         
     })
+=======
+    socketio.emit("accept", {"message": "APPROVED - you can leave the page"})
+>>>>>>> 30f313d65e1595e75faf6c8fb64aa64ccbe3fa8b
 
     return jsonify({"message": "Quiz approved", "success": True})
 
@@ -144,6 +148,8 @@ def reject_quiz(quiz_id):
     quiz.status = QuizStatus.Rejected.value
     quiz.reject_reason = data.get("reason")
     db.session.commit()
+
+    socketio.emit("reject", {"message": "REJECTED - " + quiz.reject_reason})
 
     return jsonify({"message": "Quiz rejected", "success": True})
 

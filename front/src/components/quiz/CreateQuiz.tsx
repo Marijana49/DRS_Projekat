@@ -1,6 +1,7 @@
-import React, { useState, type ChangeEvent } from "react";
+import React, { useEffect, useState, type ChangeEvent } from "react";
 import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
+import { useSocket } from "../../hooks/useSocketHook";
 
 interface CreateQuizProps{
     quizAPI: IQuizAPIService
@@ -17,6 +18,7 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
     }]);
     const [duration, setDuration] = useState("");
     const [error, setError] = useState("");
+    const {socket} = useSocket();
 
     const handleQuestionChange = (index: number, event: ChangeEvent<HTMLInputElement>) => {
         let data = [...questions]; 
@@ -77,7 +79,7 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
 
     const submitForm = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log(questions);
+        // console.log(questions);
         let questionsToSend: string[] = [];
         let answersToSend: string[][] = [];
         let correctAnswersToSend: string[] = [];
@@ -104,11 +106,9 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
         }
 
         const answer = await quizAPI.createQuiz(token ?? "", quizName, questionsToSend, answersToSend, pointsToSend, correctAnswersToSend, parsedDuration);
-
+        setError(answer.message + ", don't leave the page to wait for approval");
         if(!answer.success){
             setError(answer.message);
-        }else{
-            setError("Quiz created successfully");
             setQuizName("");
             setDuration("");
             setQuestions([{
@@ -118,8 +118,17 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
                 points: 0
             }]);
         }
-
     };
+    if(!socket)return;
+
+    function handleMessage(data: {message: string}){
+        setError(data.message);
+    }
+    useEffect(()=>{
+        socket?.on("reject", handleMessage);
+        socket?.on("accept", handleMessage);
+    }, [socket]);
+
     return(
     <div className="container px-4 py-20 mx-auto max-w-screen min-h-screen bg-zinc-700">
             <div className="rounded-2xl shadow-2xl shadow-zinc-900 max-w-xl mx-auto bg-zinc-100 py-6">
@@ -231,7 +240,7 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
 
                     <button
                         type="submit"
-                        className="inline-block w-full py-4 px-6 mb-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-800 hover:bg-indigo-900 border-3 border-indigo-900 shadow rounded transition duration-500">
+                        className="inline-block w-full py-4 px-6 mb-6 mt-2 text-center text-lg leading-6 text-white font-extrabold bg-indigo-800 hover:bg-indigo-900 border-3 border-indigo-900 shadow rounded transition duration-500">
                         Save quiz
                     </button>
                 </div>
