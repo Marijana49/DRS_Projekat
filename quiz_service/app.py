@@ -6,7 +6,7 @@ from flask import make_response
 from threading import Thread
 import time
 import requests
-
+from flask_caching import Cache
 from Database.InitializationDB import db
 from Domain.models.Quiz import Quiz
 from Domain.models.QuizResults import QuizResult
@@ -27,6 +27,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
 
+cache = Cache(config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
+cache.init_app(app)
+
 db.init_app(app)
 jwt = JWTManager(app)
 socketio = SocketIO(app, cors_allowed_origins="http://localhost:5173")
@@ -40,16 +43,25 @@ with app.app_context():
 def quizzes():
     claims = get_jwt()
     if request.method == "GET":
-        if(claims.get("role") == 3):
+       cache_key =  f"quizzes:role:{claims.get('role')}"
+       cached_quizzes = cache.get(cache_key)
+       if cached_quizzes:
+            return jsonify(cached_quizzes)
+        
+       if(claims.get("role") == 3):
             quizzes = Quiz.query.all()
-        elif(claims.get("role") == 2):
+       elif(claims.get("role") == 2):
             quizzes = Quiz.query.filter_by(author=claims.get("email")).all()
-        else:
+       else:
             quizzes = Quiz.query.filter_by(status=QuizStatus.Approved.value).all()
-        return jsonify([
+
+       result = [
             {"quizId": q.id, "quizName": q.quiz_name, "quizDuration": q.duration, "quizAuthor": q.author, "quizStatus": q.status}
             for q in quizzes
-        ])
+        ]
+    
+       cache.set(cache_key, result)
+       return jsonify(result)
 
     if not claims or claims.get("role") != 2:
         return jsonify({"message": "Unauthorized", "success": False}), 403
@@ -69,6 +81,10 @@ def quizzes():
 
     db.session.add(quiz)
     db.session.commit()
+
+    cache.delete(f"quizzes:role:2")
+    cache.delete(f"quizzes:role:3")
+    cache.delete(f"quizzes:role:None")
 
     socketio.emit("new_quiz", {
         "quizId": quiz.id,
@@ -231,11 +247,16 @@ def update_quiz(quiz_id):
 @app.route("/quiz/<int:quiz_id>/start", methods=["GET"])
 @jwt_required()
 def start_quiz(quiz_id):
+    cache_key = f"quiz:{quiz_id}:start"
+    cached_quiz = cache.get(cache_key)
+    if cached_quiz:
+        return jsonify(cached_quiz)
+    
     quiz = Quiz.query.get(quiz_id)
     if not quiz or quiz.status != QuizStatus.Approved.value:
         return jsonify({"message": "Quiz not available"}), 403
 
-    return jsonify({
+    result = {
         "id": quiz.id,
         "quizName": quiz.quiz_name,
         "questions": quiz.questions,
@@ -244,7 +265,9 @@ def start_quiz(quiz_id):
         "correctAnswers": quiz.correct_answers,
         "duration": quiz.duration,
         "author": quiz.author
-    })
+    }
+    cache.set(cache_key, result)
+    return jsonify(result)
 
 def process_quiz_async(quiz, user_answers, player_name, spent_time, player_email):
     time.sleep(5)
@@ -262,6 +285,8 @@ def process_quiz_async(quiz, user_answers, player_name, spent_time, player_email
 
     db.session.add(result)
     db.session.commit()
+
+    cache.delete(f"quiz:{quiz.id}:ranking")
 
     requests.post(
         "http://localhost:5000/email",
@@ -295,15 +320,20 @@ def submit_quiz(quiz_id):
 
 @app.route("/quiz/<int:quiz_id>/ranking", methods=["GET"])
 def quiz_ranking(quiz_id):
+    cache_key = f"quiz:{quiz_id}:ranking"
+    cached_ranking = cache.get(cache_key)
+    if cached_ranking:
+        return jsonify(cached_ranking)
+    
     results = QuizResult.query \
         .filter_by(quiz_id=quiz_id) \
         .order_by(QuizResult.points.desc()) \
         .all()
 
-    return jsonify([
-        {"playerId": r.player_name, "points": r.points, "spentTime": r.spent_time}
-        for r in results
-    ])
+    ranking = [{"playerId": r.player_id, "points": r.points, "spentTime": r.spent_time} for r in results]
+    cache.set(cache_key, ranking)
+    return jsonify(ranking)
+
 
 @app.route("/quiz/admin/results", methods=["GET"])
 @jwt_required()
