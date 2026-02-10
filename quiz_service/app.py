@@ -52,7 +52,7 @@ def quizzes():
         ])
 
     if not claims or claims.get("role") != 2:
-        return jsonify({"message": "Unauthorized"}), 403
+        return jsonify({"message": "Unauthorized", "success": False}), 403
     
 
     data = request.json
@@ -78,7 +78,7 @@ def quizzes():
         "quizStatus": quiz.status
     })
 
-    return jsonify({"message": "Quiz sent for approval"}), 201
+    return jsonify({"message": "Quiz sent for approval", "success": True, "data": quiz.id}), 201
 
 @app.route("/admin/quiz/<int:quiz_id>/approve", methods=["PUT"])
 @jwt_required()
@@ -97,13 +97,7 @@ def approve_quiz(quiz_id):
     quiz.reject_reason = None
     db.session.commit()
 
-    socketio.emit("quiz_approved", {
-        "id": quiz.id,
-        "quizName": quiz.quiz_name,
-        "duration": quiz.duration,
-        "author": quiz.author
-        
-    })
+    socketio.emit("accept", {"message": "APPROVED - you can leave the page"})
 
     return jsonify({"message": "Quiz approved", "success": True})
 
@@ -124,6 +118,8 @@ def reject_quiz(quiz_id):
     quiz.status = QuizStatus.Rejected.value
     quiz.reject_reason = data.get("reason")
     db.session.commit()
+
+    socketio.emit("reject", {"message": "REJECTED - " + quiz.reject_reason})
 
     return jsonify({"message": "Quiz rejected", "success": True})
 
