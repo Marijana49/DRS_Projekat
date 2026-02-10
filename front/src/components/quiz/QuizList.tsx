@@ -20,10 +20,9 @@ export function QuizList({quizAPI}: QuizListProps){
 
     if(!token || !user) return null;
 
-    // DODATO: funkcija za pokretanje kviza kod playera
     const handleStartQuiz = (quizId: number) => {
         const role = parseRole(user?.role);
-        // Samo ako nije admin ili moderator → igrač može da pokrene
+       
         if (role !== "ADMINISTRATOR" && role !== "MODERATOR") {
             navigate(`/quiz/play/${quizId}`);
         }
@@ -57,14 +56,14 @@ export function QuizList({quizAPI}: QuizListProps){
         const role = parseRole(user?.role);
 
         if (role === "ADMINISTRATOR") {
-            return true;                            // admin vidi sve
+            return true;                            
         }
 
         if (role === "MODERATOR") {
-            return quiz.quizAuthor === user?.email; // moderator vidi samo svoje
+            return quiz.quizAuthor === user?.email; 
         }
 
-        // ostali (igrači)
+       
         return parseQuizStatus(quiz.quizStatus) === "Approved";
     });
 
@@ -104,7 +103,7 @@ export function QuizList({quizAPI}: QuizListProps){
                 <div className="grid grid-cols-2 gap-5 text-center">
                     {visibleQuizes.length > 0 ? (visibleQuizes.map(quiz => (
                         <div key={quiz.quizId}>
-                            {/* DODATO: onClick i cursor-pointer za pokretanje kviza kod playera */}
+                           
                             <div 
                                 onClick={() => handleStartQuiz(quiz.quizId)}
                                 className="p-0.5 bg-blue-900  hover:bg-linear-to-r hover:from-blue-500 hover:to-purple-400 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700 cursor-pointer"
@@ -123,7 +122,7 @@ export function QuizList({quizAPI}: QuizListProps){
                                     Results
                                 </button>
 
-                                {/* DODATO: Delete dugme se prikazuje SAMO za admina i moderatora */}
+                               
                                 {(parseRole(user?.role) === "ADMINISTRATOR" || parseRole(user?.role) === "MODERATOR") && (
                                     <button onClick={() => handleDelete(quiz.quizId)} className="inline-block bg-rose-700 text-white px-6 py-2 mr-2 rounded hover:bg-rose-900 transition duration-500">
                                         Delete

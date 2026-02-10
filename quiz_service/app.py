@@ -38,9 +38,6 @@ with app.app_context():
     db.create_all()
 
 
-# ────────────────────────────────────────────────
-# DODATO: pomoćna funkcija za cache ključeve
-# ────────────────────────────────────────────────
 def get_quiz_cache_key(role, email=None):
     if role == 3:
         return "quizzes:role:admin"
@@ -55,9 +52,7 @@ def get_quiz_cache_key(role, email=None):
 def quizzes():
     claims = get_jwt()
     if request.method == "GET":
-        # ────────────────────────────────────────────────
-        # PROMENA: koristimo specifičan ključ po email-u za moderatore
-        # ────────────────────────────────────────────────
+     
         cache_key = get_quiz_cache_key(claims.get('role'), claims.get('email'))
         cached_quizzes = cache.get(cache_key)
         if cached_quizzes:
@@ -97,12 +92,9 @@ def quizzes():
     db.session.add(quiz)
     db.session.commit()
 
-    # ────────────────────────────────────────────────
-    # PROMENA: brišemo tačan cache za tog moderatora + admin
-    # ────────────────────────────────────────────────
     cache.delete(get_quiz_cache_key(2, claims["email"]))
     cache.delete(get_quiz_cache_key(3))
-    # cache.delete(f"quizzes:role:None")   ← ovo možeš ostaviti ili obrisati, nije kritično
+   
 
     socketio.emit("new_quiz", {
         "quizId": quiz.id,
@@ -130,12 +122,9 @@ def approve_quiz(quiz_id):
     quiz.reject_reason = None
     db.session.commit()
 
-    # ────────────────────────────────────────────────
-    # DODATO: brišemo cache autora kviza + admin cache
-    # ────────────────────────────────────────────────
     cache.delete(get_quiz_cache_key(2, quiz.author))
     cache.delete(get_quiz_cache_key(3))
-    # cache.delete(f"quizzes:role:None")
+   
 
     socketio.emit("quiz_approved", {
         "id": quiz.id,
@@ -165,12 +154,9 @@ def reject_quiz(quiz_id):
     quiz.reject_reason = data.get("reason")
     db.session.commit()
 
-    # ────────────────────────────────────────────────
-    # DODATO: brišemo cache autora kviza + admin cache
-    # ────────────────────────────────────────────────
     cache.delete(get_quiz_cache_key(2, quiz.author))
     cache.delete(get_quiz_cache_key(3))
-    # cache.delete(f"quizzes:role:None")
+    
 
     socketio.emit("reject", {"message": "REJECTED - " + quiz.reject_reason})
 
@@ -189,24 +175,17 @@ def delete_quiz(quiz_id):
     if not claims or (claims.get("role") != 2 and quiz.author != claims.get("email")) and claims.get("role") != 3: 
         return jsonify({"message": "Unathorized", "success": False}), 403
 
-    author_email = quiz.author   # DODATO: pamtimo autora pre brisanja
+    author_email = quiz.author  
 
     db.session.delete(quiz)
     db.session.commit()
 
-    # ────────────────────────────────────────────────
-    # PROMENA: brišemo tačan cache autora + admin
-    # ────────────────────────────────────────────────
     cache.delete(get_quiz_cache_key(2, author_email))
     cache.delete(get_quiz_cache_key(3))
-    # cache.delete(f"quizzes:role:None")
+   
 
     return jsonify({"message": "Delete successful", "success": True}), 200
 
-
-# ────────────────────────────────────────────────
-# DODATO: brisanje cache-a i u update endpointu
-# ────────────────────────────────────────────────
 @app.route("/moderator/quiz/<int:quiz_id>", methods=["PUT"])
 @jwt_required()
 def update_quiz(quiz_id):
@@ -235,12 +214,10 @@ def update_quiz(quiz_id):
 
     db.session.commit()
 
-    # ────────────────────────────────────────────────
-    # DODATO: brišemo tačan cache za tog moderatora i admine
-    # ────────────────────────────────────────────────
+   
     cache.delete(get_quiz_cache_key(2, quiz.author))
     cache.delete(get_quiz_cache_key(3))
-    # cache.delete(f"quizzes:role:None")
+   
 
     socketio.emit("new_quiz", {
         "quizId": quiz.id,
@@ -252,10 +229,6 @@ def update_quiz(quiz_id):
 
     return jsonify({"message": "Quiz updated and sent for approval"})
 
-
-# ────────────────────────────────────────────────
-# OSTALI ENDPOINT-I OSTAJU NETAKNUTI
-# ────────────────────────────────────────────────
 
 @app.route("/admin/quizes/pending", methods=["GET"])
 @jwt_required()
@@ -351,7 +324,6 @@ def start_quiz(quiz_id):
     return jsonify(result)
 
 
-# ... ostali endpoint-i (submit_quiz, ranking, admin_result, itd.) ostaju netaknuti ...
 
 @app.route("/quiz/<int:quiz_id>/edit", methods=["GET"])
 @jwt_required()
