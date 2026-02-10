@@ -113,7 +113,6 @@ def approve_quiz(quiz_id):
     quiz.reject_reason = None
     db.session.commit()
 
-<<<<<<< HEAD
     cache.delete(f"quizzes:role:2")
     cache.delete(f"quizzes:role:3")
     cache.delete(f"quizzes:role:None")
@@ -125,9 +124,7 @@ def approve_quiz(quiz_id):
         "author": quiz.author
         
     })
-=======
     socketio.emit("accept", {"message": "APPROVED - you can leave the page"})
->>>>>>> 30f313d65e1595e75faf6c8fb64aa64ccbe3fa8b
 
     return jsonify({"message": "Quiz approved", "success": True})
 
