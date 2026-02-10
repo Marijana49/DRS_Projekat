@@ -20,6 +20,15 @@ export function QuizList({quizAPI}: QuizListProps){
 
     if(!token || !user) return null;
 
+    // DODATO: funkcija za pokretanje kviza kod playera
+    const handleStartQuiz = (quizId: number) => {
+        const role = parseRole(user?.role);
+        // Samo ako nije admin ili moderator → igrač može da pokrene
+        if (role !== "ADMINISTRATOR" && role !== "MODERATOR") {
+            navigate(`/quiz/play/${quizId}`);
+        }
+    };
+
     useEffect(() => {
         (async ()=>{
             const data = await quizAPI.getAllQuizes(token);
@@ -95,7 +104,11 @@ export function QuizList({quizAPI}: QuizListProps){
                 <div className="grid grid-cols-2 gap-5 text-center">
                     {visibleQuizes.length > 0 ? (visibleQuizes.map(quiz => (
                         <div key={quiz.quizId}>
-                            <div className="p-0.5 bg-blue-900  hover:bg-linear-to-r hover:from-blue-500 hover:to-purple-400 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700">
+                            {/* DODATO: onClick i cursor-pointer za pokretanje kviza kod playera */}
+                            <div 
+                                onClick={() => handleStartQuiz(quiz.quizId)}
+                                className="p-0.5 bg-blue-900  hover:bg-linear-to-r hover:from-blue-500 hover:to-purple-400 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700 cursor-pointer"
+                            >
                                 <div className="bg-indigo-200/90">
                                     <h3 className="text-2xl font-bold text-indigo-900/75">{quiz.quizName}</h3>
                                     <div className="inline-block mr-4">
@@ -109,9 +122,14 @@ export function QuizList({quizAPI}: QuizListProps){
                                 <button onClick={() => handleQuizResults(quiz.quizId)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500 mr-2">
                                     Results
                                 </button>
-                                <button onClick={() => handleDelete(quiz.quizId)} className="inline-block bg-rose-700 text-white px-6 py-2 mr-2 rounded hover:bg-rose-900 transition duration-500">
-                                    Delete
-                                </button>
+
+                                {/* DODATO: Delete dugme se prikazuje SAMO za admina i moderatora */}
+                                {(parseRole(user?.role) === "ADMINISTRATOR" || parseRole(user?.role) === "MODERATOR") && (
+                                    <button onClick={() => handleDelete(quiz.quizId)} className="inline-block bg-rose-700 text-white px-6 py-2 mr-2 rounded hover:bg-rose-900 transition duration-500">
+                                        Delete
+                                    </button>
+                                )}
+
                                 {(parseRole(user?.role) == "MODERATOR" && quiz.quizAuthor == user?.email) &&
                                 <button onClick={() => handleEdit(quiz.quizId)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500">
                                     Edit

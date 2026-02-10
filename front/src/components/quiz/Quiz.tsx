@@ -3,6 +3,7 @@ import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify"; // DODATO: ako koristiš toast, ako ne – možeš obrisati toast linije
 
 interface QuizProps{
     quizAPI : IQuizAPIService;
@@ -15,7 +16,12 @@ export default function Quiz({quizAPI}: QuizProps){
     const [time, setTime] = useState(0);
     const [userAnswers, setUserAnswers] = useState<{answer: string}[]>([]);
     const navigate = useNavigate();
+
+    // DODATO: state za preostalo vreme (tajmer unazad u sekundama)
+    const [remainingTime, setRemainingTime] = useState<number>(0);
+
     if (!quizId) return;
+
     useEffect(() => {
         (async () => {
             const data = await quizAPI.startQuiz(token ?? "", parseInt(quizId, 10));
@@ -30,8 +36,30 @@ export default function Quiz({quizAPI}: QuizProps){
             setUserAnswers(initAnswers);
 
             setTime(Date.now());
+
+            // DODATO: postavi početno vreme tajmera iz duration-a (minuti u sekunde)
+            setRemainingTime(data.duration * 60);
         })();
     }, [token, quizAPI]);
+
+    // DODATO: tajmer koji broji unazad
+    useEffect(() => {
+        if (!quiz || remainingTime <= 0) return;
+
+        const interval = setInterval(() => {
+            setRemainingTime((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    toast.warn("Vreme je isteklo! Kviz se automatski predaje.");
+                    handleSubmit({} as React.MouseEvent<HTMLButtonElement>);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [quiz, remainingTime]);
 
     if(quiz == null){
         return null;
@@ -69,6 +97,14 @@ export default function Quiz({quizAPI}: QuizProps){
                     <h2 className="text-3xl md:text-4l font-extrabold text-indigo-700/90">
                         {quiz.quizName}
                     </h2>
+
+                    {/* DODATO: prikaz tajmera unazad */}
+                    <div className="text-center text-xl font-bold mt-2">
+                        Preostalo vreme: 
+                        <span className={remainingTime < 60 ? "text-red-600" : "text-green-600"}>
+                            {Math.floor(remainingTime / 60)}:{(remainingTime % 60).toString().padStart(2, '0')}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1">
@@ -84,13 +120,15 @@ export default function Quiz({quizAPI}: QuizProps){
                                         {quiz.answers[index].map((answer) => (
                                             <div
                                                 key={answer}
-                                                className="py-2 border-2 mb-2 ml-2 mr-2 mt-2 rounded shadow bg-indigo-600 
-                                                has-checked:bg-purple-500 has-checked:border-2 has-checked:border-zinc-700 
-                                                hover:shadow-2xl shadow-zinc-900 focus:outline-2 transition duration-300 has-checked:shadow"
+                                                // DODATO: promena boje kada je odgovor izabran
+                                                className={`py-2 border-2 mb-2 ml-2 mr-2 mt-2 rounded shadow cursor-pointer transition duration-300
+                                                    ${userAnswers[index]?.answer === answer 
+                                                        ? "bg-purple-700 border-zinc-300 shadow-xl" 
+                                                        : "bg-indigo-600 hover:bg-indigo-700"}`}
                                             >
                                                 <label 
                                                     htmlFor={question + answer}
-                                                    className="select-none w-full py-4 text-sm font-medium px-2"
+                                                    className="select-none w-full py-4 text-sm font-medium px-2 block"
                                                 >
                                                     {answer}
                                                 </label>
