@@ -25,4 +25,5 @@ export interface IQuizAPIService {
     deleteQuiz(token: string, id:number): Promise<QuizResponse>;
     getResults(token:string, id:number): Promise<QuizResultDTO[]>;
     getAllResults(token: string): Promise<QuizResponse>;
+    getQuizForEdit(token: string, id: number): Promise<QuizDTO>;
 }

@@ -353,6 +353,25 @@ def start_quiz(quiz_id):
 
 # ... ostali endpoint-i (submit_quiz, ranking, admin_result, itd.) ostaju netaknuti ...
 
+@app.route("/quiz/<int:quiz_id>/edit", methods=["GET"])
+@jwt_required()
+def edit_quiz(quiz_id):
+    quiz = Quiz.query.get(quiz_id)
+    if not quiz:
+        return jsonify({"message": "Quiz not available"}), 403
+
+    result = {
+        "id": quiz.id,
+        "quizName": quiz.quiz_name,
+        "questions": quiz.questions,
+        "answers": quiz.answers,
+        "points": quiz.points,
+        "correctAnswers": quiz.correct_answers,
+        "duration": quiz.duration,
+        "author": quiz.author
+    }
+
+    return jsonify(result)
 
 @socketio.on("connect")
 def handle_connect():

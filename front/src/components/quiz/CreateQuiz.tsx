@@ -1,7 +1,7 @@
-import React, { useEffect, useState, type ChangeEvent } from "react";
+import React, { useState, type ChangeEvent } from "react";
 import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
-import { useSocket } from "../../hooks/useSocketHook";
+import { useNavigate } from "react-router-dom";
 
 interface CreateQuizProps{
     quizAPI: IQuizAPIService
@@ -18,14 +18,14 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
     }]);
     const [duration, setDuration] = useState("");
     const [error, setError] = useState("");
-    const {socket} = useSocket();
+    const navigate = useNavigate();
 
     const handleQuestionChange = (index: number, event: ChangeEvent<HTMLInputElement>) => {
         let data = [...questions]; 
         let element = event.target.name;
         if(element === "points") {
             data[index][element] = parseInt(event.target.value) || 0;
-        } else {
+        } else if(element === "question" || element === "correctAnswer") {
             data[index][element] = event.target.value;
         }
         setQuestions(data);
@@ -118,16 +118,10 @@ export function CreateQuiz({quizAPI}: CreateQuizProps){
                 points: 0
             }]);
         }
+        console.log(answer.data);
+        navigate(`/quiz/edit/${answer.data}`);
     };
-    if(!socket)return;
-
-    function handleMessage(data: {message: string}){
-        setError(data.message);
-    }
-    useEffect(()=>{
-        socket?.on("reject", handleMessage);
-        socket?.on("accept", handleMessage);
-    }, [socket]);
+    
 
     return(
     <div className="container px-4 py-20 mx-auto max-w-screen min-h-screen bg-zinc-700">

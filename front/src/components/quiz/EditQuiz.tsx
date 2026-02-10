@@ -1,8 +1,9 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
+import { useSocket } from "../../hooks/useSocketHook";
 
 interface EditQuizProps {
   quizAPI: IQuizAPIService;
@@ -11,7 +12,6 @@ interface EditQuizProps {
 export function EditQuiz({ quizAPI }: EditQuizProps) {
   const { token } = useAuth();
   const { quizId } = useParams();
-  const navigate = useNavigate();
 
   const [quizName, setQuizName] = useState("");
   const [duration, setDuration] = useState("");
@@ -19,12 +19,13 @@ export function EditQuiz({ quizAPI }: EditQuizProps) {
     { question: "", answers: [{ answer: "" }], correctAnswer: "", points: 0 },
   ]);
   const [error, setError] = useState("");
+  const {socket} = useSocket();
 
   useEffect(() => {
     if (!quizId) return;
 
     (async () => {
-      const data: QuizDTO = await quizAPI.startQuiz(token ?? "", parseInt(quizId, 10));
+      const data: QuizDTO = await quizAPI.getQuizForEdit(token ?? "", parseInt(quizId, 10));
       setQuizName(data.quizName);
       setDuration(data.duration.toString());
 
@@ -36,6 +37,7 @@ export function EditQuiz({ quizAPI }: EditQuizProps) {
       }));
 
       setQuestions(formattedQuestions);
+      setError("Wait on this page for approval");
     })();
   }, [quizId, quizAPI, token]);
 
@@ -44,7 +46,7 @@ export function EditQuiz({ quizAPI }: EditQuizProps) {
     const element = event.target.name;
     if (element === "points") {
       data[index][element] = parseInt(event.target.value) || 0;
-    } else {
+    } else if(element === "question" || element === "correctAnswer"){
       data[index][element] = event.target.value;
     }
     setQuestions(data);
@@ -83,8 +85,7 @@ export function EditQuiz({ quizAPI }: EditQuizProps) {
       return;
     }
 
-    try {
-      await quizAPI.updateQuiz(token ?? "", parseInt(quizId!, 10), {
+    const answer =  await quizAPI.updateQuiz(token ?? "", parseInt(quizId!, 10), {
         id: parseInt(quizId!, 10),
         quizName,
         questions: questionsToSend,
@@ -94,13 +95,21 @@ export function EditQuiz({ quizAPI }: EditQuizProps) {
         duration: parsedDuration,
         author: "",
       });
-
-      alert("Quiz updated and sent for approval");
-      navigate("/quizes");
-    } catch (err: any) {
-      setError(err.message || "Error updating quiz");
-    }
+    setError(answer.message);
+    
   };
+  if(!socket)return;
+    
+    function handleMessage(data: {message: string}){
+        setError(data.message);
+    }
+    
+    useEffect(()=>{
+        socket?.on("reject", handleMessage);
+        socket?.on("accept", handleMessage);
+    }, [socket]);
+    
+
 
   return (
     <div className="container px-4 py-20 mx-auto max-w-screen min-h-screen bg-zinc-700">

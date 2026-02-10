@@ -205,5 +205,26 @@ export const QuizAPI : IQuizAPIService = {
                 message: "Error"
             }
         }
+    },
+
+    async getQuizForEdit(token: string, id: number): Promise<QuizDTO>{
+        try{
+            const answer = await axios.get<QuizDTO>(
+                `${API_URL}/quiz/${id}/edit`,
+                {headers: { Authorization: `Bearer ${token}` }}
+            );
+            return answer.data;
+        }catch{
+            return {
+                id: 0,
+                quizName: "",
+                questions: [],
+                answers: [],
+                points: [],
+                correctAnswers: [],
+                duration: 0,
+                author: ""
+            };
+        }
     }
 }
