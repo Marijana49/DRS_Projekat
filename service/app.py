@@ -13,6 +13,11 @@ from Domain.enums.UserRole import UserRole
 from Domain.enums.Gender import Gender
 from flask_cors import CORS
 from flask_caching import Cache
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+from Services.email_process import start_email_process
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, expose_headers=["Authorization"], allow_headers=["Content-Type", "Authorization"])
@@ -22,6 +27,15 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
 # app.config["JWT_TOKEN_LOCATION"] = "headers"
+
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS") == "true"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
+mail = Mail(app)
+
 jwt = JWTManager(app)
 
 cache = Cache(config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
@@ -206,6 +220,7 @@ def get_users():
     cache.set("users:all", result)
     return jsonify(result)
 
+
 @app.route("/admin/role/<int:user_id>", methods=["PUT"])
 @jwt_required()
 def change_role(user_id):
@@ -242,7 +257,7 @@ def change_role(user_id):
         Warm regards,
         Admin team"""
 
-        # snimi u bazu
+    # snimi u bazu
     email = Email(
         to=user.email,
         subject=subject,
@@ -250,6 +265,13 @@ def change_role(user_id):
         )
     db.session.add(email)
     db.session.commit()
+
+    
+    try:
+        start_email_process(user.email, subject, body)
+
+    except Exception as e:
+        print("Email error:", e)
 
     return jsonify({"message": "Role changed"})
 
