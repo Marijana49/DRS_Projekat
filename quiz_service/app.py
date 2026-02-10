@@ -345,6 +345,18 @@ def edit_quiz(quiz_id):
 
     return jsonify(result)
 
+@app.route("/quiz/<int:quiz_id>/ranking", methods=["GET"])
+def quiz_ranking(quiz_id):
+    results = QuizResult.query \
+        .filter_by(quiz_id=quiz_id) \
+        .order_by(QuizResult.points.desc()) \
+        .all()
+
+    return jsonify([
+        {"playerId": r.player_name, "points": r.points, "spentTime": r.spent_time}
+        for r in results
+    ])
+
 @socketio.on("connect")
 def handle_connect():
     print("Admin connected to WebSocket")
