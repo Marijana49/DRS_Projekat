@@ -79,7 +79,7 @@ export function UserTable({userApi}: UserTableProps){
                             <td className="px-4 py-2">{parseRole(user.role) != "ADMINISTRATOR" ? (
                                 <button onClick={() => handleChangeRole(user.id, user.role)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500">
                                     Change Role
-                                </button>) : ( <td></td> ) }
+                                </button>) : ( <div></div> ) }
                             </td>
                             <td className="px-4 py-2">
                                 <button onClick={() => handleDelete(user.id)} className="inline-block bg-rose-700 text-white px-6 py-2 rounded hover:bg-rose-900 transition duration-500">

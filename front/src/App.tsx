@@ -19,6 +19,7 @@ import QuizPage from "./pages/quiz/quizPage";
 import CreateQuizPage from "./pages/quiz/createQuizPage";
 import QuizApprovalPage from "./pages/quiz/quizApprovalPage";
 import EditQuizPage from "./pages/quiz/editQuizPage";
+import QuizResultPage from "./pages/quiz/quizResultsPage";
 function App() {
   return (
     <Routes>
@@ -51,8 +52,10 @@ function App() {
           <EditQuizPage quizAPI={QuizAPI}/>
         </ProtectedRoute>
       }/>
-      <Route path="/admin"
-        element = {
+      <Route path="/quiz/results/:quizId" element={
+        <QuizResultPage quizAPI={QuizAPI}/>
+      }/>
+      <Route path="/admin" element = {
           <ProtectedRoute requiredRole="ADMINISTRATOR">
             <AdminDashboard userAPI={userAPI} />
           </ProtectedRoute>

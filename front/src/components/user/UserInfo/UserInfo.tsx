@@ -37,13 +37,10 @@ export function UserInfo({userAPI} : UserInfoProps){
     }
 
     const handleEdit = () => {
-        navigate("/profile/edit")
+        navigate("/profile/edit");
     }
     const handleChangeImage = () => {
-        navigate("/profile/picture")
-    }
-    const handleQuizApproval = () => {
-        navigate("/admin/quiz")
+        navigate("/profile/picture");
     }
 
     return(        
@@ -86,7 +83,6 @@ export function UserInfo({userAPI} : UserInfoProps){
                     {parseRole(user.role) == "ADMINISTRATOR" ? (
                     <div>
                         <button onClick={handelSwitchPage} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500 mr-2" >User List</button>
-                        <button onClick={handleQuizApproval} className="inline-block w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500 ml-2" >Quiz Approval</button>
                     </div>
                     ) : (
                         <div></div>

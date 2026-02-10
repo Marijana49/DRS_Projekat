@@ -250,7 +250,7 @@ def start_quiz(quiz_id):
         "author": quiz.author
     })
 
-def process_quiz_async(quiz, user_answers, player_id, spent_time, player_email):
+def process_quiz_async(quiz, user_answers, player_name, spent_time, player_email):
     time.sleep(5)
     total_points = 0
     for i, correct in enumerate(quiz.correct_answers):
@@ -259,7 +259,7 @@ def process_quiz_async(quiz, user_answers, player_id, spent_time, player_email):
 
     result = QuizResult(
         quiz_id=quiz.id,
-        player_id=player_id,
+        player_name=player_name,
         spent_time=spent_time,
         points=total_points
     )
@@ -287,10 +287,11 @@ def submit_quiz(quiz_id):
     claims = get_jwt()
     player_id = get_jwt_identity()
     player_email = claims.get("email")
+    player_name = claims.get("firstName")
 
     thread = Thread(
         target=process_quiz_async,
-        args=(quiz, data["answers"], player_id, data["spentTime"], player_email)
+        args=(quiz, data["answers"], player_name, data["spentTime"], player_email)
     )
     thread.start()
 
@@ -304,9 +305,21 @@ def quiz_ranking(quiz_id):
         .all()
 
     return jsonify([
-        {"playerId": r.player_id, "points": r.points, "spentTime": r.spent_time}
+        {"playerId": r.player_name, "points": r.points, "spentTime": r.spent_time}
         for r in results
     ])
+
+@app.route("/quiz/admin/results", methods=["GET"])
+@jwt_required()
+def admin_result():
+    results = QuizResult.query.order_by(QuizResult.quiz_id).all()
+
+    if(len(results) <= 0):
+        return jsonify({"message": "No results to send", "success": False}), 404
+    
+    #TODO sending to mail
+    return jsonify({"message": "Results sent to your mail!", "success": True}), 200
+
 
 @app.route("/quiz/<int:quiz_id>/delete", methods=["DELETE"])
 @jwt_required()

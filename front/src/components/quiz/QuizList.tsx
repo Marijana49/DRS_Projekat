@@ -3,10 +3,10 @@ import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useNavigate } from "react-router-dom";
 import type { QuizPreview } from "../../types/Quiz/QuizPreview";
-import { SacuvajPoKljucu } from "../../helpers/local_storage";
 import { parseQuizStatus } from "../../helpers/parseQuizStatus";
 import { parseRole } from "../../helpers/parseRole";
 import { useSocket } from "../../hooks/useSocketHook";
+import { toast, ToastContainer } from "react-toastify";
 
 interface QuizListProps {
     quizAPI: IQuizAPIService
@@ -23,10 +23,8 @@ export function QuizList({quizAPI}: QuizListProps){
     const handlePlay = async (id: number) => {
         let quiz = allQuizes.find(q => q.quizId == id);
         if(!quiz ||  parseQuizStatus(quiz?.quizStatus) == "Pending"){
-            
             return;
         }
-        SacuvajPoKljucu("quizId", id.toString());
         navigate(`/quiz/play/${id}`);
     }
 
@@ -38,12 +36,8 @@ export function QuizList({quizAPI}: QuizListProps){
     }, [token, quizAPI]);
 
     useEffect(()=>{
-        quizesToApprove.forEach(quiz => {
-            if(allQuizes.includes(quiz)){
-                setQuizes(prev => [...prev, quiz]);
-            }
-        });
-    }, [quizesToApprove, allQuizes]);
+        setQuizes([...quizesToApprove, ...allQuizes])
+    }, [quizesToApprove]);
 
     
     const handleDelete  = async (id: number) => {
@@ -58,9 +52,15 @@ export function QuizList({quizAPI}: QuizListProps){
     const handleEdit = (id: number) => {
         navigate(`/quiz/edit/${id}`);
     }
-
     const handleToApproval = (quizId: number) => {
-        navigate(`/admin/quiz/${quizId}`)
+        navigate(`/admin/quiz/${quizId}`);
+    }
+    const handleQuizResults = (quizId: number) => {
+        navigate(`/quiz/results/${quizId}`);
+    }
+    const handleQuizApproval = async () => {
+        const answer = await quizAPI.getAllResults(token);
+        toast(answer.message);  
     }
 
     return(
@@ -69,6 +69,11 @@ export function QuizList({quizAPI}: QuizListProps){
                 <div className="text-center mb-6">
                     <h2 className="text-3xl md:text-4l font-extrabold text-indigo-700/90">Quizes</h2>
                 </div>
+                {parseRole(user?.role) == "ADMINISTRATOR" && 
+                    <div>
+                        <button onClick={handleQuizApproval} className="w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500 ml-2 mb-4" >Results PDF</button>
+                        <ToastContainer/>
+                    </div>}
                 <div className="grid grid-cols-2 gap-5 text-center">
                     {allQuizes.length > 0 ? (allQuizes.map(quiz => (
                         <div key={quiz.quizId}>
@@ -83,6 +88,9 @@ export function QuizList({quizAPI}: QuizListProps){
                                 </div>
                             </button>
                             <div className="mt-2">
+                                <button onClick={() => handleQuizResults(quiz.quizId)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500 mr-2">
+                                    Results
+                                </button>
                                 <button onClick={() => handleDelete(quiz.quizId)} className="inline-block bg-rose-700 text-white px-6 py-2 mr-2 rounded hover:bg-rose-900 transition duration-500">
                                     Delete
                                 </button>

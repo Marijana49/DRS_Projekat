@@ -27,7 +27,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
     // Handles the socket connection event
     function handleConnect() {
       console.log("Socket connected", newSocket.id);
-      setQuizes([]);
+      // setQuizes([]);
       setSocket(newSocket);
       setIsConnected(true);
       setIsLoading(false);

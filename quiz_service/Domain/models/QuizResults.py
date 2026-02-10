@@ -5,6 +5,6 @@ class QuizResult(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     quiz_id = db.Column(db.Integer, nullable=False)
-    player_id = db.Column(db.Integer, nullable=False)
+    player_name = db.Column(db.String(20), nullable=False)
     spent_time = db.Column(db.Integer, nullable=False)
     points = db.Column(db.Integer, nullable=False)

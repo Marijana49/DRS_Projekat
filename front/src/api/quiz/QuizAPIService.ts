@@ -4,6 +4,7 @@ import type { IQuizAPIService } from "./IQuizAPIService";
 import type { QuizPreview } from "../../types/Quiz/QuizPreview";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
 import type { ModeratorQuiz } from "../../types/Quiz/ModeratorQuiz";
+import type { QuizResultDTO } from "../../models/quizes/QuizResultDTO";
 
 const API_URL:string = import.meta.env.VITE_QUIZ_API_URL;
 console.log(API_URL);
@@ -181,4 +182,28 @@ export const QuizAPI : IQuizAPIService = {
             }
         }
     },
+
+    async getResults(token:string, id:number): Promise<QuizResultDTO[]>{
+        try{
+            const answer = await axios.get<QuizResultDTO[]>(`${API_URL}/quiz/${id}/ranking`, 
+                {headers: {Authorization: `Bearer ${token}`}});
+            return answer.data;
+        }catch{
+            return [];
+        }
+    },
+
+    async getAllResults(token: string): Promise<QuizResponse>{
+        try{
+            const answer = await axios.get<QuizResponse>(`${API_URL}/quiz/admin/results`, 
+                {headers: {Authorization: `Bearer ${token}`}}
+            );
+            return answer.data
+        }catch{
+            return{
+                success: false,
+                message: "Error"
+            }
+        }
+    }
 }
