@@ -146,9 +146,14 @@ def reject_quiz(quiz_id):
     quiz.reject_reason = data.get("reason")
     db.session.commit()
 
+    cache.delete(f"quizzes:role:2")
+    cache.delete(f"quizzes:role:3")
+    cache.delete(f"quizzes:role:None")
+
     socketio.emit("reject", {"message": "REJECTED - " + quiz.reject_reason})
 
     return jsonify({"message": "Quiz rejected", "success": True})
+
 
 @app.route("/admin/quizes/pending", methods=["GET"])
 @jwt_required()
@@ -243,6 +248,10 @@ def update_quiz(quiz_id):
     quiz.reject_reason = None
 
     db.session.commit()
+
+    cache.delete(f"quizzes:role:2")
+    cache.delete(f"quizzes:role:3")
+    cache.delete(f"quizzes:role:None")
 
     socketio.emit("new_quiz", {
         "quizId": quiz.id,
@@ -372,6 +381,10 @@ def delete_quiz(quiz_id):
 
     db.session.delete(quiz)
     db.session.commit()
+
+    cache.delete(f"quizzes:role:2")
+    cache.delete(f"quizzes:role:3")
+    cache.delete(f"quizzes:role:None")
 
     return jsonify({"message": "Delete successful", "success": True}), 200
 
