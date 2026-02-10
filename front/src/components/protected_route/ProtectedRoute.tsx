@@ -1,6 +1,5 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthHook";
-import { ObrisiPoKljucu } from "../../helpers/local_storage";
 import { parseRole } from "../../helpers/parseRole";
 
 type ProtectedRouteProps = {
@@ -14,12 +13,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     requiredRole,
     redirectTo = "/login",
 }) => {
-    const {isAuthenticated, user, isLoading, logout} = useAuth();
+    const {isAuthenticated, user, isLoading} = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     const handleLogout = () => {
-        ObrisiPoKljucu("authToken");
-        logout();
+        navigate(-1);
     };
 
     if(isLoading) {
@@ -46,7 +45,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                     <button 
                     className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-indigo-700 text-white px-6 py-2 shadow rounded hover:bg-indigo-900 transition duration-500 mt-4"
                     onClick={handleLogout}>
-                        Logout
+                        Back
                     </button>
                 </div>
             </main>

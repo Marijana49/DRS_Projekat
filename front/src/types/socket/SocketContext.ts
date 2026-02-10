@@ -1,10 +1,10 @@
 import type { Socket } from "socket.io-client";
-import type { QuizToAccept } from "../Quiz/QuizApproval";
+import type { QuizPreview } from "../Quiz/QuizPreview";
 
 export type SocketContextType = {
   socket: Socket | null;
   isConnected: boolean;
   isLoading: boolean;
-  quizes: QuizToAccept[];
+  quizesToApprove: QuizPreview[];
   removeQuiz: (id: number) => void;
 };

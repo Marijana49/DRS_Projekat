@@ -3,7 +3,6 @@ import type { QuizResponse } from "../../types/Quiz/QuizResponse";
 import type { IQuizAPIService } from "./IQuizAPIService";
 import type { QuizPreview } from "../../types/Quiz/QuizPreview";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
-import type { QuizToAccept } from "../../types/Quiz/QuizApproval";
 import type { ModeratorQuiz } from "../../types/Quiz/ModeratorQuiz";
 
 const API_URL:string = import.meta.env.VITE_QUIZ_API_URL;
@@ -37,9 +36,10 @@ export const QuizAPI : IQuizAPIService = {
             };
         }
     },
-    async getPendingQuizes(token: string): Promise<QuizToAccept[]> {
+
+    async getPendingQuizes(token: string): Promise<QuizPreview[]> {
         try{
-            const answer = await axios.get<QuizToAccept[]>(
+            const answer = await axios.get<QuizPreview[]>(
                 `${API_URL}/admin/quizes/pending`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
@@ -49,6 +49,30 @@ export const QuizAPI : IQuizAPIService = {
             return answer.data;
         }catch{
             return [];
+        }
+    },
+
+    async getPendingQuiz(token: string, id: number): Promise<QuizDTO> {
+        try{
+            const answer = await axios.get<QuizDTO>(
+                `${API_URL}/admin/quiz/pending/${id}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true
+                }
+            );
+            return answer.data;
+        }catch{
+            return {
+                id: 0,
+                quizName: "",
+                questions: [],
+                answers: [],
+                points: [],
+                correctAnswers: [],
+                duration: 0,
+                author: ""
+            };
         }
     },
     async getModeratorQuizes(token: string): Promise<ModeratorQuiz[]> {
@@ -73,11 +97,8 @@ export const QuizAPI : IQuizAPIService = {
     },
     async startQuiz(token: string, id: number): Promise<QuizDTO>{
         try{
-            const answer = await axios.post<QuizDTO>(`${API_URL}/quiz/${id}/start`, 
-                {},
-                {headers : {Authorization: `Bearer ${token}`,
-                 "Content-Type": "application/json"},
-                 withCredentials: true});
+            const answer = await axios.get<QuizDTO>(`${API_URL}/quiz/${id}/start`,
+                {headers : {Authorization: `Bearer ${token}`}});
             return answer.data;
         }catch{
             return{
@@ -145,5 +166,19 @@ export const QuizAPI : IQuizAPIService = {
                 message: "ERROR"
             }
         }
-    }
+    },
+
+    async deleteQuiz(token: string, id: number): Promise<QuizResponse> {
+        try{
+            const answer = await axios.delete<QuizResponse>(`${API_URL}/quiz/${id}/delete`,
+                {headers: {Authorization: `Bearer ${token}`}}
+            );
+            return answer.data;
+        }catch{
+            return{
+                success: false,
+                message: "ERROR"
+            }
+        }
+    },
 }

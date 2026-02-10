@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuthHook";
+import { parseRole } from "../../helpers/parseRole";
 
 export default function ToolBar(){
     const navigate = useNavigate();
     const {user} = useAuth();
 
     const handleHome = () => {
-        navigate("/quizes");
+            navigate("/quizes");
     }
     const handleQuizCreate = () => {
         if(user?.role == "PLAYER"){

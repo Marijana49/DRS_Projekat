@@ -3,13 +3,13 @@ import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useEffect } from "react";
 import ToolBar from "../../components/toolbar/ToolBar";
-import QuizAccept from "../../components/quiz/QuizAccept";
+import { EditQuiz } from "../../components/quiz/EditQuiz";
 
-interface QuizApprovalPageProps{
+interface EditQuizPageProps{
     quizAPI: IQuizAPIService;
 }
 
-export default function QuizApprovalPage({quizAPI}: QuizApprovalPageProps){
+export default function EditQuizPage({quizAPI}: EditQuizPageProps){
     const {token, isAuthenticated, logout} = useAuth();
     const navigate = useNavigate();
 
@@ -19,12 +19,13 @@ export default function QuizApprovalPage({quizAPI}: QuizApprovalPageProps){
             navigate("/login");
         }
     }, [isAuthenticated, logout, navigate]);
-    return(
-        <main>
+
+    return (
+        <main className="">
             <div className="max-h-10">
                 <ToolBar/>
             </div>
-            <QuizAccept quizAPI={quizAPI}/>
+            <EditQuiz quizAPI={quizAPI}/>
         </main>
     )
 }

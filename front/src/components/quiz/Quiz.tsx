@@ -2,7 +2,7 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import type { IQuizAPIService } from "../../api/quiz/IQuizAPIService";
 import { useAuth } from "../../hooks/useAuthHook";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
-import { ProcitajPoKljucu } from "../../helpers/local_storage";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface QuizProps{
     quizAPI : IQuizAPIService;
@@ -10,15 +10,20 @@ interface QuizProps{
 
 export default function Quiz({quizAPI}: QuizProps){
     const {token} = useAuth();
+    const { quizId } = useParams();
     const [quiz, setQuiz] = useState<QuizDTO | null>(null);
     const [time, setTime] = useState(0);
     const [userAnswers, setUserAnswers] = useState<{answer: string}[]>([]);
-    
+    const navigate = useNavigate();
+    if (!quizId) return;
     useEffect(() => {
-        const quizId = parseInt(ProcitajPoKljucu("quizId") ?? "", 10);
-
         (async () => {
-            const data = await quizAPI.startQuiz(token ?? "", quizId);
+            const data = await quizAPI.startQuiz(token ?? "", parseInt(quizId, 10));
+            for(let i=0; i < data.answers.length; i++){
+                data.answers[i].push(data.correctAnswers[i]);
+                data.answers[i].sort();
+            }
+    
             setQuiz(data);
 
             const initAnswers = data.questions.map(() => ({ answer: "" }));
@@ -54,10 +59,11 @@ export default function Quiz({quizAPI}: QuizProps){
         (async () =>{
             await quizAPI.submitQuiz(token ?? "", quiz.id, answersToSend, endTime);
         })();
+        navigate("/profile");
     }
 
     return(
-        <div className="container bg-zinc-800 px-4 mx-auto min-h-screen min-w-screen">
+        <div className="container px-4 mx-auto min-h-screen min-w-screen">
             <div className="max-w-5xl mx-auto">
                 <div className="text-center mb-6">
                     <h2 className="text-3xl md:text-4l font-extrabold text-indigo-700/90">

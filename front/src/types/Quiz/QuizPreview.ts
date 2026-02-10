@@ -3,4 +3,5 @@ export type QuizPreview = {
     quizName: string;
     quizDuration: number;
     quizAuthor: string;
+    quizStatus: string;
 }

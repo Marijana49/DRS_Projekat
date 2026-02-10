@@ -1,8 +1,8 @@
 import { createContext, useEffect, useState, type ReactNode } from "react";
 import type { SocketContextType } from "../../types/socket/SocketContext";
 import { io, Socket } from "socket.io-client";
-import type { QuizToAccept } from "../../types/Quiz/QuizApproval";
 import { toast } from "react-toastify";
+import type { QuizPreview } from "../../types/Quiz/QuizPreview";
  
 export const SocketContext = createContext<SocketContextType | undefined>(undefined);
  
@@ -19,7 +19,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [quizes, setQuizes] = useState<QuizToAccept[]>([]);
+  const [quizes, setQuizes] = useState<QuizPreview[]>([]);
  
   useEffect(() => {
     const newSocket = createSocketConnection();
@@ -27,7 +27,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
     // Handles the socket connection event
     function handleConnect() {
       console.log("Socket connected", newSocket.id);
-      //setQuizes([]);
+      setQuizes([]);
       setSocket(newSocket);
       setIsConnected(true);
       setIsLoading(false);
@@ -48,7 +48,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
       setIsLoading(false);
     }
 
-    function handleQuiz(data: QuizToAccept){
+    function handleQuiz(data: QuizPreview){
       toast("New quiz for approval")
       setQuizes(prev => [...prev, data]);
       setIsLoading(false);
@@ -80,7 +80,7 @@ export const SocketProvider: React.FC<{ children : ReactNode}> = ({children}) =>
     socket,
     isConnected,
     isLoading,
-    quizes,
+    quizesToApprove: quizes,
     removeQuiz
   };
 

@@ -38,16 +38,22 @@ with app.app_context():
 @app.route("/quiz", methods=["POST", "GET"])
 @jwt_required(optional=True)
 def quizzes():
+    claims = get_jwt()
     if request.method == "GET":
-        quizzes = Quiz.query.filter_by(status=QuizStatus.Approved.value).all()
+        if(claims.get("role") == 3):
+            quizzes = Quiz.query.all()
+        elif(claims.get("role") == 2):
+            quizzes = Quiz.query.filter_by(author=claims.get("email")).all()
+        else:
+            quizzes = Quiz.query.filter_by(status=QuizStatus.Approved.value).all()
         return jsonify([
-            {"id": q.id, "quizName": q.quiz_name, "duration": q.duration, "author": q.author}
+            {"quizId": q.id, "quizName": q.quiz_name, "quizDuration": q.duration, "quizAuthor": q.author, "quizStatus": q.status}
             for q in quizzes
         ])
 
-    claims = get_jwt()
     if not claims or claims.get("role") != 2:
         return jsonify({"message": "Unauthorized"}), 403
+    
 
     data = request.json
     quiz = Quiz(
@@ -68,7 +74,8 @@ def quizzes():
         "quizId": quiz.id,
         "quizName": quiz.quiz_name,
         "quizAuthor": quiz.author,
-        "quizDuration": quiz.duration
+        "quizDuration": quiz.duration,
+        "quizStatus": quiz.status
     })
 
     return jsonify({"message": "Quiz sent for approval"}), 201
@@ -95,9 +102,10 @@ def approve_quiz(quiz_id):
         "quizName": quiz.quiz_name,
         "duration": quiz.duration,
         "author": quiz.author
+        
     })
 
-    return jsonify({"message": "Quiz approved"})
+    return jsonify({"message": "Quiz approved", "success": True})
 
 @app.route("/admin/quiz/<int:quiz_id>/reject", methods=["PUT"])
 @jwt_required()
@@ -117,8 +125,7 @@ def reject_quiz(quiz_id):
     quiz.reject_reason = data.get("reason")
     db.session.commit()
 
-    return jsonify({"message": "Quiz rejected"})
-
+    return jsonify({"message": "Quiz rejected", "success": True})
 
 @app.route("/admin/quizes/pending", methods=["GET"])
 @jwt_required()
@@ -134,10 +141,29 @@ def get_pending_quizes():
             "quizId": q.id,
             "quizName": q.quiz_name,
             "quizAuthor": q.author,
-            "quizDuration": q.duration
+            "quizDuration": q.duration,
+            "quizStatus": q.status
         }
         for q in quizzes
     ])
+
+@app.route("/admin/quiz/pending/<int:quiz_id>", methods=["GET"])
+@jwt_required()
+def get_pending_quiz(quiz_id):
+    quiz = Quiz.query.get(quiz_id)
+    if not quiz or quiz.status != QuizStatus.Pending.value:
+        return jsonify({"message": "Quiz not available"}), 403
+
+    return jsonify({
+        "id": quiz.id,
+        "quizName": quiz.quiz_name,
+        "questions": quiz.questions,
+        "answers": quiz.answers,
+        "points": quiz.points,
+        "correctAnswers": quiz.correct_answers,
+        "duration": quiz.duration,
+        "author": quiz.author
+    })
 
 
 @app.route("/moderator/quizes", methods=["GET"])
@@ -199,13 +225,14 @@ def update_quiz(quiz_id):
         "quizId": quiz.id,
         "quizName": quiz.quiz_name,
         "quizAuthor": quiz.author,
-        "quizDuration": quiz.duration
+        "quizDuration": quiz.duration,
+        "quizStatus": quiz.status
     })
 
     return jsonify({"message": "Quiz updated and sent for approval"})
 
 
-@app.route("/quiz/<int:quiz_id>/start", methods=["POST"])
+@app.route("/quiz/<int:quiz_id>/start", methods=["GET"])
 @jwt_required()
 def start_quiz(quiz_id):
     quiz = Quiz.query.get(quiz_id)
@@ -217,7 +244,7 @@ def start_quiz(quiz_id):
         "quizName": quiz.quiz_name,
         "questions": quiz.questions,
         "answers": quiz.answers,
-        "points": quiz.question_points,
+        "points": quiz.points,
         "correctAnswers": quiz.correct_answers,
         "duration": quiz.duration,
         "author": quiz.author
@@ -280,6 +307,23 @@ def quiz_ranking(quiz_id):
         {"playerId": r.player_id, "points": r.points, "spentTime": r.spent_time}
         for r in results
     ])
+
+@app.route("/quiz/<int:quiz_id>/delete", methods=["DELETE"])
+@jwt_required()
+def delete_quiz(quiz_id):
+    claims = get_jwt()
+    quiz = Quiz.query.get(quiz_id)
+    if not quiz:
+        return jsonify({"message": "Quiz not available", "success": False}), 404
+    
+
+    if not claims or (claims.get("role") != 2 and quiz.author != claims.get("email")) and claims.get("role") != 3: 
+        return jsonify({"message": "Unathorized", "success": False}), 403
+
+    db.session.delete(quiz)
+    db.session.commit()
+
+    return jsonify({"message": "Delete successful", "success": True}), 200
 
 @socketio.on("connect")
 def handle_connect():
