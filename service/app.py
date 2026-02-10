@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from Domain.enums.UserRole import UserRole
 from Domain.enums.Gender import Gender
 from flask_cors import CORS
-
+from flask_caching import Cache
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, expose_headers=["Authorization"], allow_headers=["Content-Type", "Authorization"])
@@ -23,6 +23,9 @@ app.config['SQLALCHEMY_ECHO'] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
 # app.config["JWT_TOKEN_LOCATION"] = "headers"
 jwt = JWTManager(app)
+
+cache = Cache(config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
+cache.init_app(app)
 
 db.init_app(app)
 
@@ -99,10 +102,18 @@ def logout():
 @app.route("/profile", methods=["GET", "PUT"])
 @jwt_required()
 def profile():
-    user = User.query.get(int(get_jwt_identity()))
+    user_id = int(get_jwt_identity())
 
     if request.method == "GET":
-        return jsonify({
+        cached_user = cache.get(f"user:{user_id}")
+        if cached_user:
+            return jsonify(cached_user)
+        
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+        result = {
             "id": user.id,
             "firstName": user.first_name,
             "lastName": user.last_name,
@@ -114,18 +125,24 @@ def profile():
             "streetNumber": user.street_number,
             "role": user.role,
             "picture": user.profile_image
-        })
+        }
+        cache.set(f"user:{user_id}", result)
+        return jsonify(result)
+        
 
-    data = request.json
-    user.first_name = data.get("first_name", user.first_name)
-    user.last_name = data.get("last_name", user.last_name)
-    user.country = data.get("country", user.country)
-    user.street = data.get("street", user.street)
-    user.street_number = data.get("street_number", user.street_number)
+    elif request.method == "PUT":
+        data = request.json
+        user = User.query.get(user_id)
+        user.first_name = data.get("first_name", user.first_name)
+        user.last_name = data.get("last_name", user.last_name)
+        user.country = data.get("country", user.country)
+        user.street = data.get("street", user.street)
+        user.street_number = data.get("street_number", user.street_number)
+        db.session.commit()
 
-    db.session.commit()
-    return jsonify({"message": "Profile updated"})
-
+        cache.delete(f"user:{user_id}")
+        return jsonify({"message": "Profile updated"})
+    
 @app.route("/profile/image", methods=["POST"])
 @jwt_required()
 def upload_profile_image():
@@ -145,13 +162,16 @@ def upload_profile_image():
     user.profile_image = path
     db.session.commit()
 
+    cache.delete(f"user:{user.id}")
     return jsonify({"message": "Picture added succesfully"})
+
 
 @app.route("/uploads/<path:filename>", methods=["GET"])
 def get_profile_image(filename):
     path = "uploads/" + filename
     response = send_file(path_or_file=path)
     return response
+
 
 @app.route("/admin/users", methods=["GET"])
 @jwt_required()
@@ -163,8 +183,12 @@ def get_users():
     if admin.role != UserRole.ADMINISTRATOR.value:
         return jsonify({"message": "Unauthorised access"}), 403
 
+    cached_users = cache.get("users:all")
+    if cached_users:
+        return jsonify(cached_users)
+    
     users = User.query.all()
-    return jsonify([
+    result = [
         {
             "id": u.id,
             "firstName": u.first_name,
@@ -177,7 +201,10 @@ def get_users():
             "streetNumber": u.street_number,
             "role": u.role
         } for u in users
-    ])
+    ]
+
+    cache.set("users:all", result)
+    return jsonify(result)
 
 @app.route("/admin/role/<int:user_id>", methods=["PUT"])
 @jwt_required()
@@ -200,6 +227,8 @@ def change_role(user_id):
         return jsonify({"message": "Nonexistant role"}), 400
 
     db.session.commit()
+    cache.delete(f"user:{user.id}")
+    cache.delete("users:all")
 
     print(f"MAIL: Role changed into {user.role}")
 
@@ -225,7 +254,6 @@ def change_role(user_id):
     return jsonify({"message": "Role changed"})
 
 
-
 @app.route("/admin/user/<int:user_id>", methods=["DELETE"])
 @jwt_required()
 def delete_user(user_id):
@@ -240,6 +268,9 @@ def delete_user(user_id):
 
     db.session.delete(user)
     db.session.commit()
+
+    cache.delete(f"user:{user.id}")
+    cache.delete("users:all")
 
     return jsonify({"message": "User deleted"})
 
