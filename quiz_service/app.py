@@ -113,6 +113,10 @@ def approve_quiz(quiz_id):
     quiz.reject_reason = None
     db.session.commit()
 
+    cache.delete(f"quizzes:role:2")
+    cache.delete(f"quizzes:role:3")
+    cache.delete(f"quizzes:role:None")
+
     socketio.emit("quiz_approved", {
         "id": quiz.id,
         "quizName": quiz.quiz_name,
