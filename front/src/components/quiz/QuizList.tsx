@@ -18,35 +18,53 @@ export function QuizList({quizAPI}: QuizListProps){
     const [allQuizes, setQuizes] = useState<QuizPreview[]>([]);
     const navigate = useNavigate();
 
-    if(!token)return;
-
-    const handlePlay = async (id: number) => {
-        let quiz = allQuizes.find(q => q.quizId == id);
-        if(!quiz ||  parseQuizStatus(quiz?.quizStatus) == "Pending"){
-            return;
-        }
-        navigate(`/quiz/play/${id}`);
-    }
+    if(!token || !user) return null;
 
     useEffect(() => {
         (async ()=>{
             const data = await quizAPI.getAllQuizes(token);
-            setQuizes(data);
+            setQuizes(data || []);
         })();
     }, [token, quizAPI]);
 
     useEffect(()=>{
-        setQuizes([...quizesToApprove, ...allQuizes])
+        if (!quizesToApprove?.length) return;
+
+        setQuizes(prev => {
+            const map = new Map<number, QuizPreview>();
+
+            prev.forEach(q => map.set(q.quizId, q));
+            quizesToApprove.forEach(updated => {
+                if (updated?.quizId) {
+                    map.set(updated.quizId, updated);
+                }
+            });
+
+            return Array.from(map.values());
+        });
     }, [quizesToApprove]);
 
-    
+    const visibleQuizes = allQuizes.filter(quiz => {
+        const role = parseRole(user?.role);
+
+        if (role === "ADMINISTRATOR") {
+            return true;                            // admin vidi sve
+        }
+
+        if (role === "MODERATOR") {
+            return quiz.quizAuthor === user?.email; // moderator vidi samo svoje
+        }
+
+        // ostali (igrači)
+        return parseQuizStatus(quiz.quizStatus) === "Approved";
+    });
+
     const handleDelete  = async (id: number) => {
         const answer = await quizAPI.deleteQuiz(token, id);
         if(!answer.success){
             return;
         }
         setQuizes(prev => prev.filter(q => q.quizId !== id));
-
     }
 
     const handleEdit = (id: number) => {
@@ -75,9 +93,9 @@ export function QuizList({quizAPI}: QuizListProps){
                         <ToastContainer/>
                     </div>}
                 <div className="grid grid-cols-2 gap-5 text-center">
-                    {allQuizes.length > 0 ? (allQuizes.map(quiz => (
+                    {visibleQuizes.length > 0 ? (visibleQuizes.map(quiz => (
                         <div key={quiz.quizId}>
-                            <button onClick = {() => handlePlay(quiz.quizId)} className="p-0.5 bg-blue-900  hover:bg-linear-to-r hover:from-blue-500 hover:to-purple-400 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700">
+                            <div className="p-0.5 bg-blue-900  hover:bg-linear-to-r hover:from-blue-500 hover:to-purple-400 hover:shadow-2xl transition duration-400 shadow shadow-zinc-700">
                                 <div className="bg-indigo-200/90">
                                     <h3 className="text-2xl font-bold text-indigo-900/75">{quiz.quizName}</h3>
                                     <div className="inline-block mr-4">
@@ -86,7 +104,7 @@ export function QuizList({quizAPI}: QuizListProps){
                                     <div className="inline-block">by {quiz.quizAuthor}</div>
                                     {parseRole(user?.role) == "ADMINISTRATOR" && <p>Status: {parseQuizStatus(quiz.quizStatus)}</p>}
                                 </div>
-                            </button>
+                            </div>
                             <div className="mt-2">
                                 <button onClick={() => handleQuizResults(quiz.quizId)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500 mr-2">
                                     Results
