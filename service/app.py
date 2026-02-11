@@ -13,7 +13,7 @@ from Domain.enums.UserRole import UserRole
 from Domain.enums.Gender import Gender
 from flask_cors import CORS
 from flask_caching import Cache
-from flask_mail import Mail, Message
+from flask_mail import Mail
 from dotenv import load_dotenv
 from Services.email_process import start_email_process
 
@@ -304,4 +304,4 @@ if __name__ == "__main__":
         db.create_all()
         print("Tabels created!")
 
-    app.run(debug=True)
+    app.run(debug=True, port=5000, host="0.0.0.0")
