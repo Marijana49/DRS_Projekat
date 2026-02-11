@@ -7,6 +7,7 @@ import type { IUserAPIService } from "../../../api/user/IUserAPIService";
 import { useEffect, useState } from "react";
 import type { UserDTO } from "../../../models/users/UserDTO";
 import { parseDate } from "../../../helpers/parseDate";
+import defaultPicture from "../../../assets/default_icon.jpg";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -54,9 +55,9 @@ export function UserInfo({userAPI} : UserInfoProps){
                     Welcome {user.firstName}
                 </h1>
                 <div className="flex item-center justify-left">
-                    <img src={user.picture ? `${API_URL}/`+ user.picture : "src/assets/default_icon.jpg"}
+                    <img src={user.picture ? `${API_URL}/`+ user.picture : defaultPicture}
                         alt="Profile Picture"
-                        onError={(e) => (e.currentTarget.src = "/src/assets/default_icon.jpg")}
+                        onError={(e) => (e.currentTarget.src = defaultPicture)}
                         style={{width: "160px", height: "160px"}}
                     />
                     <div className="px-10 py-15">

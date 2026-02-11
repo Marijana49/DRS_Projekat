@@ -76,6 +76,8 @@ def register():
     db.session.add(user)
     db.session.commit()
 
+    cache.delete("users:all")
+
     return jsonify({"message": "User registered"}), 201
 
 @app.route("/login", methods=["POST"])

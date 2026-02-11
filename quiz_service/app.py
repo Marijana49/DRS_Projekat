@@ -26,7 +26,7 @@ app = Flask(__name__)
 
 CORS(
     app,
-    resources={r'/*': {"origins": "http://localhost:5173"}},
+    resources={r'/*': {"origins": "http://localhost:5005"}},
     supports_credentials=True,
     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
@@ -50,7 +50,7 @@ cache.init_app(app)
 
 db.init_app(app)
 jwt = JWTManager(app)
-socketio = SocketIO(app, cors_allowed_origins="http://localhost:5173")
+socketio = SocketIO(app, cors_allowed_origins="http://localhost:5005")
 
 with app.app_context():
     db.create_all()
