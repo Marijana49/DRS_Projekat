@@ -69,7 +69,7 @@ export default function QuizAccept({quizAPI} : QuizAcceptProps){
                 <div className="text-center">
                     <div className="mb-4">
                         <h2 className="text-indigo-800 font-bold text-3xl text-shadow-2xs text-shadow-inc-900">
-                            Quiz waitning approval
+                            Quiz waiting for approval
                         </h2> 
                     </div>
                     <div>

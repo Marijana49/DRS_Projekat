@@ -48,7 +48,7 @@ export default function Quiz({quizAPI}: QuizProps){
             setRemainingTime((prev) => {
                 if (prev <= 1) {
                     clearInterval(interval);
-                    toast.warn("Vreme je isteklo! Kviz se automatski predaje.");
+                    toast.warn("Time is up! The quiz will be sent for ranking.");
                     handleSubmit({} as React.MouseEvent<HTMLButtonElement>);
                     return 0;
                 }
@@ -98,7 +98,7 @@ export default function Quiz({quizAPI}: QuizProps){
 
                     
                     <div className="text-center text-xl font-bold mt-2">
-                        Preostalo vreme: 
+                        Remaining time: 
                         <span className={remainingTime < 60 ? "text-red-600" : "text-green-600"}>
                             {Math.floor(remainingTime / 60)}:{(remainingTime % 60).toString().padStart(2, '0')}
                         </span>

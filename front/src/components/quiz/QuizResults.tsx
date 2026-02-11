@@ -23,7 +23,6 @@ export default function QuizResult({ quizAPI }: QuizResultProps) {
 
     if (!token || !quizId) return null;
 
-    // Učitavanje pitanja kviza
     useEffect(() => {
         const fetchQuiz = async () => {
             try {
@@ -39,7 +38,6 @@ export default function QuizResult({ quizAPI }: QuizResultProps) {
         fetchQuiz();
     }, [token, quizAPI, quizId]);
 
-    // Učitavanje rezultata kviza (leaderboard)
     useEffect(() => {
         let retries = 0;
         const fetchResults = async () => {

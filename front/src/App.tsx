@@ -1,8 +1,4 @@
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom"
+import { Routes, Route, Navigate } from "react-router-dom"
 import { authApi } from "./api/auth/AuthAPIService";
 import RegisterPage from "./pages/auth/registracijaStraica";
 import NotFoundStranica from "./pages/notFound/notFound";
@@ -20,6 +16,7 @@ import CreateQuizPage from "./pages/quiz/createQuizPage";
 import QuizApprovalPage from "./pages/quiz/quizApprovalPage";
 import EditQuizPage from "./pages/quiz/editQuizPage";
 import QuizResultPage from "./pages/quiz/quizResultsPage";
+
 function App() {
   return (
     <Routes>
