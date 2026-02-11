@@ -119,7 +119,7 @@ export function QuizList({quizAPI}: QuizListProps){
                             </div>
                             <div className="mt-2">
                                 <button onClick={() => handleQuizResults(quiz.quizId)} className="inline-block bg-indigo-700 text-white px-6 py-2 rounded hover:bg-indigo-900 transition duration-500 mr-2">
-                                    Results
+                                    Leaderboard
                                 </button>
 
                                
