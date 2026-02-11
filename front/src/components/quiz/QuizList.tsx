@@ -6,7 +6,7 @@ import type { QuizPreview } from "../../types/Quiz/QuizPreview";
 import { parseQuizStatus } from "../../helpers/parseQuizStatus";
 import { parseRole } from "../../helpers/parseRole";
 import { useSocket } from "../../hooks/useSocketHook";
-import { toast, ToastContainer } from "react-toastify";
+//import { toast, ToastContainer } from "react-toastify";
 
 interface QuizListProps {
     quizAPI: IQuizAPIService
@@ -84,10 +84,6 @@ export function QuizList({quizAPI}: QuizListProps){
     const handleQuizResults = (quizId: number) => {
         navigate(`/quiz/results/${quizId}`);
     }
-    const handleQuizApproval = async () => {
-        const answer = await quizAPI.getAllResults(token);
-        toast(answer.message);  
-    }
 
     return(
         <div className="container px-4 mx-auto min-h-screen min-w-screen">
@@ -95,11 +91,6 @@ export function QuizList({quizAPI}: QuizListProps){
                 <div className="text-center mb-6">
                     <h2 className="text-3xl md:text-4l font-extrabold text-indigo-700/90">Quizes</h2>
                 </div>
-                {parseRole(user?.role) == "ADMINISTRATOR" && 
-                    <div>
-                        <button onClick={handleQuizApproval} className="w-small py-2 px-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-700 shadow rounded hover:bg-indigo-900 transition duration-500 ml-2 mb-4" >Results PDF</button>
-                        <ToastContainer/>
-                    </div>}
                 <div className="grid grid-cols-2 gap-5 text-center">
                     {visibleQuizes.length > 0 ? (visibleQuizes.map(quiz => (
                         <div key={quiz.quizId}>

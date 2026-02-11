@@ -5,6 +5,7 @@ import type { QuizDTO } from "../../models/quizes/QuizDTO";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { parseRole } from "../../helpers/parseRole";
 
 interface QuizResultProps {
     quizAPI: IQuizAPIService;
@@ -16,7 +17,7 @@ export default function QuizResult({ quizAPI }: QuizResultProps) {
     const [loadingResults, setLoadingResults] = useState(true);
     const [loadingQuiz, setLoadingQuiz] = useState(true);
 
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { quizId } = useParams();
     const navigate = useNavigate();
 
@@ -61,6 +62,32 @@ export default function QuizResult({ quizAPI }: QuizResultProps) {
         fetchResults();
     }, [token, quizAPI, quizId]);
 
+    const handleGeneratePDF = async () => {
+        try {
+            const res = await fetch(
+                `http://localhost:5001/admin/quiz/${quizId}/results/pdf`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                toast.error(data.message || "PDF generation failed");
+                return;
+            }
+
+            toast("PDF generated and sent to your email");
+        } catch (e) {
+            toast.error("Server error while generating PDF");
+        }
+    };
+
     const handleBack = () => navigate(-1);
 
     return (
@@ -93,6 +120,17 @@ export default function QuizResult({ quizAPI }: QuizResultProps) {
                 <div className="text-center mb-6">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-indigo-700">Leaderboard</h2>
                 </div>
+
+                {parseRole(user?.role) === "ADMINISTRATOR" && (
+                    <div className="flex mt-6">
+                        <button
+                            onClick={handleGeneratePDF}
+                            className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-emerald-700 text-white px-6 py-2 shadow rounded hover:bg-emerald-900 transition duration-500"
+                        >
+                            Generate PDF & Send to Email
+                        </button>
+                    </div>
+                )}
 
                 {loadingResults ? (
                     <div className="text-center py-10 text-xl text-gray-600">Loading results...</div>
