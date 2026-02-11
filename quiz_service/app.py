@@ -357,6 +357,44 @@ def quiz_ranking(quiz_id):
         for r in results
     ])
 
+@app.route("/quiz/<int:quiz_id>/submit", methods=["POST"])
+@jwt_required()
+def submit_quiz(quiz_id):
+    claims = get_jwt()
+    data = request.json
+
+    quiz = Quiz.query.get(quiz_id)
+    if not quiz or quiz.status != QuizStatus.Approved.value:
+        return jsonify({"message": "Quiz not available", "success": False}), 403
+
+    user_email = claims.get("email")
+    user_answers = data.get("answers")
+    spent_time = data.get("spentTime")
+
+    total_points = 0
+
+    for i in range(len(quiz.correct_answers)):
+        if i < len(user_answers) and user_answers[i] == quiz.correct_answers[i]:
+            total_points += quiz.points[i]
+
+    result = QuizResult(
+        quiz_id=quiz.id,
+        player_name=user_email,
+        points=total_points,
+        spent_time=spent_time
+    )
+
+    db.session.add(result)
+    db.session.commit()
+    cache.delete(f"quiz:{quiz_id}:ranking")
+
+    return jsonify({
+        "success": True,
+        "message": "Quiz submitted successfully",
+        "points": total_points
+    })
+
+
 @socketio.on("connect")
 def handle_connect():
     print("Admin connected to WebSocket")
