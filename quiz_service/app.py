@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, get_jwt
 from flask_cors import CORS
@@ -11,6 +12,11 @@ from Database.InitializationDB import db
 from Domain.models.Quiz import Quiz
 from Domain.models.QuizResults import QuizResult
 from Domain.enums.QuizStatus import QuizStatus
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+from Service.email_process import start_email_process
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -26,6 +32,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:1234@localh
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["JWT_SECRET_KEY"] = "tajna"
+
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS") == "true"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
+mail = Mail(app)
 
 cache = Cache(config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
 cache.init_app(app)
@@ -386,6 +400,24 @@ def submit_quiz(quiz_id):
 
     db.session.add(result)
     db.session.commit()
+
+    subject = "Quiz Results"
+
+    body = f"""
+    Quiz: {quiz.quiz_name}
+
+    Your score: {total_points}
+    Time spent: {spent_time} seconds
+
+    Thank you for playing!
+    """
+
+    try:
+        start_email_process(user_email, subject, body)
+
+    except Exception as e:
+        print("Email error:", e)
+
     cache.delete(f"quiz:{quiz_id}:ranking")
 
     return jsonify({
