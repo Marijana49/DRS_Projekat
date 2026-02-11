@@ -4,7 +4,7 @@ import type { QuizResultDTO } from "../../models/quizes/QuizResultDTO";
 import type { QuizDTO } from "../../models/quizes/QuizDTO";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { parseRole } from "../../helpers/parseRole";
 
 interface QuizResultProps {
@@ -122,13 +122,14 @@ export default function QuizResult({ quizAPI }: QuizResultProps) {
                 </div>
 
                 {parseRole(user?.role) === "ADMINISTRATOR" && (
-                    <div className="flex mt-6">
+                    <div className="flex mt-6 mb-4">
                         <button
                             onClick={handleGeneratePDF}
                             className="inline-block w-small text-center text-lg leading-6 font-extrabold bg-emerald-700 text-white px-6 py-2 shadow rounded hover:bg-emerald-900 transition duration-500"
                         >
                             Generate PDF & Send to Email
                         </button>
+                        <ToastContainer/>
                     </div>
                 )}
 
